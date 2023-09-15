@@ -1,0 +1,1 @@
+Explicaciones mas formales de lo que vamos implementando
