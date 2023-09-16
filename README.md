@@ -92,3 +92,11 @@ async def delete_user(user_id: UUID):
 Para toda esta parte de HTTP es importante ver los metodos (GET,POST, etc.) y los codigos de errores. Ademas usar excepciones, try, catch, etc.
 
 Estan los dos archivos (juego.py y models.py) con todo lo detallado aca + los imports.
+
+
+
+VENV
+
+python -m venv /path/to/new/virtual/environment
+source venv/bin/activate
+ctrl shift p , python select interpreter, venv
