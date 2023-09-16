@@ -100,3 +100,6 @@ VENV
 python -m venv /path/to/new/virtual/environment
 source venv/bin/activate
 ctrl shift p , python select interpreter, venv
+
+# Diagrama del back
+![back](img/back.jpeg)
