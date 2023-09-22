@@ -49,7 +49,7 @@ class TemplateCarta(db.Entity):
 class Partida(db.Entity):
     id = PrimaryKey(int, auto=True)
     nombre = Required(str)
-    password = Optional(str, default=None)
+    password = Optional(str, default='')
     maxJug = Required(int)
     minJug = Required(int)
     turnoActual = Optional(int)
