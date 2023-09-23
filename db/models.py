@@ -27,7 +27,7 @@ class Jugador(db.Entity):
     blockIzq = Required(bool, default=False)
     blockDer = Required(bool, default=False)
     cuarentena = Optional(bool, default=False)
-    partida = Required('Partida')
+    partida = Optional('Partida')
     cartas = Set('Carta')
 
 
@@ -55,7 +55,7 @@ class Partida(db.Entity):
     turnoActual = Optional(int)
     sentido = Required(bool, default=True)
     iniciada = Required(bool, default=False)
-    jugadors = Set(Jugador)
+    jugadores = Set(Jugador)
     cartas = Set(Carta)
 
 
