@@ -1,6 +1,6 @@
 from pony.orm import *
 from enum import Enum
-from settings import DATABASE_FILENAME
+from db.settings import DATABASE_FILENAME
 
 
 db = Database()
@@ -35,7 +35,7 @@ class Carta(db.Entity):
     id = PrimaryKey(int, auto=True)
     descartada = Required(bool, default=False)
     template_carta = Required('TemplateCarta')
-    jugador = Required(Jugador)
+    jugador = Optional(Jugador)
     partida = Required('Partida')
 
 
