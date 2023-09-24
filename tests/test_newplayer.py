@@ -16,7 +16,7 @@ def random_user() -> str:
 
 def test_valid_user():
     username = random_user()
-    response = client.post(f'jugadores/new?uname={username}')
+    response = client.post(f'jugadores?nombre={username}')
     assert response.status_code == 201
 
     with db_session:
@@ -24,8 +24,8 @@ def test_valid_user():
         assert player.nombre == username
 
 def test_invalid_user():
-    response = client.post('jugadores/new?uname=')
+    response = client.post('jugadores?nombre=')
     assert response.status_code == 400
     
-    response = client.post('jugadores/new?uname=   ')
+    response = client.post('jugadores?nombre=   ')
     assert response.status_code == 400
