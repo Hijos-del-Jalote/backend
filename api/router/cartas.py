@@ -1,5 +1,5 @@
 from fastapi import APIRouter
 from pony.orm import db_session
-from models import Carta, TemplateCarta, Tipo_Carta
+from db.models import db
 
 cartas_router = APIRouter()
