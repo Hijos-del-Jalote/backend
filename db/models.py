@@ -1,6 +1,6 @@
 from pony.orm import *
 from enum import Enum
-from db.settings import DATABASE_FILENAME
+from .settings import DATABASE_FILENAME
 
 
 db = Database()

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, HTTPException
 from pony.orm import db_session
 from db.models import Jugador, Rol
-from api.router.schemas import PlayerResponse
+from .schemas import PlayerResponse
 
 jugadores_router = APIRouter()
 
