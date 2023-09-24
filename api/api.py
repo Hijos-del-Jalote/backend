@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 import sys
-from .router.cartas import cartas_router
-from .router.jugadores import jugadores_router
-from .router.partidas import partidas_router
+from api.router.cartas import cartas_router
+from api.router.jugadores import jugadores_router
+from api.router.partidas import partidas_router
 
 app = FastAPI()
 
