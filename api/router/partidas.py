@@ -15,9 +15,8 @@ class PartidaOut(BaseModel):
 @partidas_router.post("",
                      response_model=PartidaOut, 
                      status_code=status.HTTP_201_CREATED)
-async def crear_partida(partida: PartidaIn) -> PartidaOut:
+async def crear_partida(nombrePartida: str) -> PartidaOut:
     with db_session:
-        nombrePartida = partida.nombrePartida
         if(len(nombrePartida) == 0 or nombrePartida.isspace()):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="Nombre vacio")

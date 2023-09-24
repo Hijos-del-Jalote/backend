@@ -10,17 +10,13 @@ client = TestClient(app)
 
 def test_crear_partida():
 
-    partidaCorrecta = {"nombrePartida": "partidaDePrueba"}
-
-    response = client.post("/partidas/", json=partidaCorrecta)
+    response = client.post(f'partidas/?nombrePartida=pruba')
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() != {
         'id': None
         }
-    
-    partidaSinNombre = {"nombrePartida": ""}
 
-    response = client.post("/partidas/", json=partidaSinNombre)
+    response = client.post(f'partidas/?nombrePartida=')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
