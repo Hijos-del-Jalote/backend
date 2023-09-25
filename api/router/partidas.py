@@ -30,7 +30,7 @@ async def crear_partida(nombrePartida: str) -> PartidaOut:
 
 
 @partidas_router.get(path="/{id}", status_code=status.HTTP_200_OK)
-async def obtener_partida(id: int):
+async def obtener_partida(id: int) -> PartidaResponse:
     with db_session:
         partida = Partida.get(id=id)
 
