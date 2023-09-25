@@ -22,7 +22,7 @@ async def unir_jugador(idPartida:int, idJugador:int):
     with db_session:
         if db.Partida.exists(id=idPartida) & db.Jugador.exists(id=idJugador):
             jugador = db.Jugador[idJugador]
-            jugador.partida = idPartida
+            jugador.partida = Partida.get(id=idPartida)
         else:
             raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
 

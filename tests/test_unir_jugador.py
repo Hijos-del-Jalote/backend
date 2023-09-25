@@ -10,17 +10,14 @@ client = TestClient(app)
 
 def test_unir_jugador():
 
-    ids_existentes = {"idPartida" : 1, "idJugador" : 1}
+    existen_response = client.post("partidas/unir?idPartida=1&idJugador=1")
 
-    response = client.post("/partidas/unir", json=ids_existentes)
-
-    assert response.status_code == 200
+    assert existen_response.status_code == 200
     
-    jugador_no_existente = {"idPartida" : 1, "idJugador" : 100}
-    response = client.post("/partidas/", json=ids_no_existentes)
+    no_jugador_response = client.post("partidas/unir?idPartida=1&idJugador=100")
 
-    assert response.status_code == 400
+    assert no_jugador_response.status_code == 400
 
-    partida_no_existente = {"idPartida" : 100, "idJugador" : 1}
+    no_partida_response = client.post("partidas/unir?idPartida=100&idJugador=1")
 
-    assert response.status_code == 400
+    assert no_partida_response.status_code == 400
