@@ -1,16 +1,11 @@
-from fastapi import APIRouter
+from typing import Optional
+from fastapi import APIRouter, HTTPException, status
 from pony.orm import *
 from db.models import *
 import json 
 from pydantic import BaseModel
 
 partidas_router = APIRouter()
- 
-
-@partidas_router.post("/demo_insert")
-async def demo_insert():
-    with db_session:
-        db.insert("Partida", nombre = "Partida1", password = "", maxJug = 6,minJug = 5,sentido = True,iniciada = False)
 
 
 @partidas_router.get("", status_code=200)
@@ -30,3 +25,27 @@ async def unir_jugador(idPartida:int, idJugador:int):
             jugador.partida = idPartida
         else:
             raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
+
+class PartidaIn(BaseModel):
+    nombrePartida: str
+
+class PartidaOut(BaseModel):
+    idPartida: int
+
+@partidas_router.post("",
+                     response_model=PartidaOut, 
+                     status_code=status.HTTP_201_CREATED)
+async def crear_partida(nombrePartida: str) -> PartidaOut:
+    with db_session:
+        if(len(nombrePartida) == 0 or nombrePartida.isspace()):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Nombre vacio")
+        else:
+            nueva_partida = Partida(nombre = nombrePartida,
+                                    maxJug = 12,
+                                    minJug = 4)
+            db.commit()
+    return PartidaOut(idPartida = nueva_partida.id) # se lo asigna pony solo
+        
+
+ 
