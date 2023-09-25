@@ -19,7 +19,7 @@ async def listar_partidas():
     with db_session:
         partidas = select(pa for pa in db.Partida if pa.iniciada == False)
         for partida in partidas:
-            p.append(partida.to_dict())    
+            p.append({key: partida.to_dict()[key] for key in partida.to_dict() if key in ["id", "nombre","maxJug", "minJug"]})    
     return p
 
 @partidas_router.post("/unir", status_code=200)
