@@ -1,10 +1,29 @@
 from typing import Optional
 from fastapi import APIRouter, HTTPException, status
-from pony.orm import db_session
-from db.models import Partida, db, Jugador
+from pony.orm import *
+from db.models import *
+import json 
 from pydantic import BaseModel
 
 partidas_router = APIRouter()
+
+
+@partidas_router.get("", status_code=200)
+async def listar_partidas():
+    p = []
+    with db_session:
+        partidas = select(pa for pa in db.Partida if pa.iniciada == False)
+        for partida in partidas:
+            p.append({key: partida.to_dict()[key] for key in partida.to_dict() if key in ["id", "nombre","maxJug", "minJug"]})    
+    return p
+
+@partidas_router.post("/unir", status_code=200)
+async def unir_jugador(idPartida:int, idJugador:int):
+    with db_session:
+        if db.Partida.exists(id=idPartida) & db.Jugador.exists(id=idJugador):
+            partida = db.Partida[idPartida].jugadores.add(db.Jugador[idJugador])
+        else:
+            raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
 
 class PartidaIn(BaseModel):
     nombrePartida: str
