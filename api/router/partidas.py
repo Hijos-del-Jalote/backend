@@ -40,7 +40,10 @@ async def obtener_partida(id: int) -> PartidaResponse:
                                           minJugadores=partida.minJug,
                                           inciada=partida.iniciada,
                                           turnoActual=partida.turnoActual,
-                                          sentido=partida.sentido)
+                                          sentido=partida.sentido,
+                                          jugadores=[{"id": j.id,
+                                                      "nombre": j.nombre} for j in partida.jugadores])
+                                          
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="Partida no encontrada")

@@ -1,7 +1,7 @@
 # Fake users and games for testing
 from pony.orm import db_session, count
-from db.models import *
-from .test_newplayer import random_user
+from db.models import Jugador,Partida
+from tests.test_newplayer import random_user
 
 def load_jugadores():
     #(id,nombre,isHost,partida)
@@ -43,3 +43,6 @@ def load_partidas():
 def populate_db():
     load_jugadores()
     load_partidas()
+
+if __name__ == "__main__":
+    populate_db()
