@@ -8,7 +8,7 @@ class PartidaResponse(BaseModel):
     nombre: str
     maxJugadores: int
     minJugadores: int
-    inciada: bool
+    iniciada: bool
     turnoActual: Optional[int]
     sentido: bool
     jugadores: List[Dict[str, Union[str,int]]]

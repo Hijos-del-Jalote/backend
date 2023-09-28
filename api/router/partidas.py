@@ -68,7 +68,7 @@ async def obtener_partida(id: int) -> PartidaResponse:
             partidaResp = PartidaResponse(nombre=partida.nombre,
                                           maxJugadores=partida.maxJug,
                                           minJugadores=partida.minJug,
-                                          inciada=partida.iniciada,
+                                          iniciada=partida.iniciada,
                                           turnoActual=partida.turnoActual,
                                           sentido=partida.sentido,
                                           jugadores=[{"id": j.id,
