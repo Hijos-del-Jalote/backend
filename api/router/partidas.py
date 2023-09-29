@@ -59,4 +59,20 @@ async def crear_partida(nombrePartida: str, idHost: int) -> PartidaOut:
     return PartidaOut(idPartida = nueva_partida.id) # se lo asigna pony solo
         
 
- 
+@partidas_router.put("/iniciar", status_code=status.HTTP_200_OK)
+async def iniciar_partida(idPartida: int):
+    with db_session:
+        partida = Partida.get(id=idPartida)
+        if not partida: 
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail="No existe partida con ese id")
+        
+        if partida.iniciada:  
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="Partida ya iniciada")
+        
+        if len(partida.jugadores) > partida.maxJug or len(partida.jugadores) < partida.minJug: 
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="Partida no respeta limites jugadores")
+        
+        partida.iniciada = True
