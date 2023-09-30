@@ -4,7 +4,7 @@ from pony.orm import db_session
 from api.api import app
 from api.router.partidas import PartidaIn, PartidaOut
 
-from db.models import Partida, db, Jugador
+from db.models import Partida, db, Jugador, Rol
 
 from tests.test_newplayer import random_user
 
@@ -49,7 +49,15 @@ def test_crear_partida():
     # verifico que se haya iniciado
     with db_session:
         partida = Partida.get(id = partida.id)
+        jugadores = list(partida.jugadores)
     assert partida.iniciada == True
+
+    # verifico que tengan posicion y rol por defecto
+    posiciones = set()
+    for jugador in jugadores:
+        assert jugador.Posicion not in posiciones
+        posiciones.add(jugador.Posicion)
+        assert jugador.Rol == "humano"
 
     # partida ya iniciada
     response = client.put(f"partidas/iniciar?idPartida={partida.id}")

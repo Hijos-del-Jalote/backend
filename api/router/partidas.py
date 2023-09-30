@@ -76,3 +76,8 @@ async def iniciar_partida(idPartida: int):
                                     detail="Partida no respeta limites jugadores")
         
         partida.iniciada = True
+        posicion = 0
+        for jugador in partida.jugadores:
+            jugador.Rol = "humano"
+            jugador.Posicion = posicion
+            posicion += 1
