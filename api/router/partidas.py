@@ -4,6 +4,7 @@ from pony.orm import *
 from db.models import *
 import json 
 from pydantic import BaseModel
+from .schemas import PartidaResponse
 
 partidas_router = APIRouter()
 
@@ -57,7 +58,28 @@ async def crear_partida(nombrePartida: str, idHost: int) -> PartidaOut:
             host.partida = nueva_partida
             db.commit()
     return PartidaOut(idPartida = nueva_partida.id) # se lo asigna pony solo
-        
+
+@partidas_router.get(path="/{id}", status_code=status.HTTP_200_OK)
+async def obtener_partida(id: int) -> PartidaResponse:
+    with db_session:
+        partida = Partida.get(id=id)
+
+        if partida:
+            jugadores_list = sorted([{"id": j.id,
+                                      "nombre": j.nombre} for j in partida.jugadores], key=lambda j: j['id'])
+
+            partidaResp = PartidaResponse(nombre=partida.nombre,
+                                          maxJugadores=partida.maxJug,
+                                          minJugadores=partida.minJug,
+                                          iniciada=partida.iniciada,
+                                          turnoActual=partida.turnoActual,
+                                          sentido=partida.sentido,
+                                          jugadores=jugadores_list)
+                                          
+        else:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Partida no encontrada")
+    return partidaResp
 
 @partidas_router.put("/iniciar", status_code=status.HTTP_200_OK)
 async def iniciar_partida(idPartida: int):
@@ -76,3 +98,4 @@ async def iniciar_partida(idPartida: int):
                                     detail="Partida no respeta limites jugadores")
         
         partida.iniciada = True
+
