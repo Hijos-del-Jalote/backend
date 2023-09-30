@@ -29,7 +29,7 @@ def crear_carta(template,partida):
 """@db_session
 def repartir_cartas(partida):
     for j in partida.jugadores:
-        for i in range(cantidad_cartas_por_jugador):
+        for i in range cantidad_cartas_por_jugador:
             robar_carta(partida.cartas , j)
     return 0 
 """

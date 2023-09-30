@@ -77,8 +77,8 @@ def crear_mazo_10jugadores(partida):
     cartavacia= TemplateCarta.get(nombre="Carta Vacia")
     for i in range(4):
         carta=crear_carta(lanzallamas,partida)
-    for i in range(68):
-        cartavacia=crear_carta(cartavacia ,partida)
+    for i in range(64):
+        carta_vacia=crear_carta(cartavacia ,partida)
     return 0
 
 
@@ -88,7 +88,7 @@ def crear_mazo_11jugadores(partida):
     cartavacia= TemplateCarta.get(nombre="Carta Vacia")
     for i in range(5):
         carta=crear_carta(lanzallamas,partida)
-    for i in range(72):
+    for i in range(80):
         carta_vacia=crear_carta(cartavacia ,partida)
     return 0
 
@@ -101,8 +101,6 @@ def crear_mazo_12jugadores(partida):
     for i in range(80):
         carta_vacia=crear_carta(cartavacia ,partida)
     return 0
-
-
 
 def crear_mazo(partida):
     num_jugadores = len(partida.jugadores)
