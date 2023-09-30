@@ -54,4 +54,3 @@ def test_crear_partida():
     # partida ya iniciada
     response = client.put(f"partidas/iniciar?idPartida={partida.id}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-   
