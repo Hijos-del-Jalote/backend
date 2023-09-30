@@ -65,14 +65,16 @@ async def obtener_partida(id: int) -> PartidaResponse:
         partida = Partida.get(id=id)
 
         if partida:
+            jugadores_list = sorted([{"id": j.id,
+                                      "nombre": j.nombre} for j in partida.jugadores], key=lambda j: j['id'])
+
             partidaResp = PartidaResponse(nombre=partida.nombre,
                                           maxJugadores=partida.maxJug,
                                           minJugadores=partida.minJug,
                                           iniciada=partida.iniciada,
                                           turnoActual=partida.turnoActual,
                                           sentido=partida.sentido,
-                                          jugadores=[{"id": j.id,
-                                                      "nombre": j.nombre} for j in partida.jugadores])
+                                          jugadores=jugadores_list)
                                           
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
