@@ -10,18 +10,27 @@ client = TestClient(app)
 
 def test_jugar_carta():
     with db_session:
+        l = False
         #Crear template de una carta
-        template_carta = TemplateCarta(nombre="Prueba", descripcion="Esta es una carta de prueba", tipo=Tipo_Carta.accion)
+        if not TemplateCarta.exists(nombre="Prueba"):
+            template_carta = TemplateCarta(nombre="Prueba", descripcion="Esta es una carta de prueba", tipo=Tipo_Carta.accion)
+            l = True
+        else:
+            template_carta = TemplateCarta.get(nombre="Prueba")
         #Crear un jugador
-        jugador = Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=True)
+        jugador = Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=True, Posicion=1)
         #Crear una partida con jugador host
-        partida = Partida(nombre="Partida", maxJug=5, minJug=1, sentido=0, iniciada=True, jugadores={jugador})
+        partida = Partida(nombre="Partida", maxJug=5, minJug=1, sentido=0, iniciada=True, turnoActual=0, jugadores={jugador})
         #Crear carta y asignarsela al jugador y partida
         carta = Carta(descartada=False, template_carta=template_carta, partida=partida, jugador=jugador)
         db.commit()
-        #Jugar carta
+        #Jugar carta, Deberia dar error ya que no es el turno del jugador
         response = client.post(f'cartas/jugar?id_carta={carta.id}')
-        #Fijarse que la carta y el jugador no esten relacionados
+        assert(response.status_code == 400)
+        jugador.Posicion=0
+        db.commit()
+        #El jugador deberia jugar la carta correctamente
+        response = client.post(f'cartas/jugar?id_carta={carta.id}')
         assert(response.status_code == 200)
         #Jugar la carta nuevamente -> deberia dar error ya que la carta no pertenece a ningun jugador.
         response = client.post(f'cartas/jugar?id_carta={carta.id}')
@@ -29,8 +38,8 @@ def test_jugar_carta():
         #Jugar carta inexistente -> deberia dar error
         response = client.post('cartas/jugar?id_carta=1000000')
         assert(response.status_code == 400)
-        
-        template_carta.delete()
+        if l:
+            template_carta.delete()
         jugador.delete()
         partida.delete()
         carta.delete()
