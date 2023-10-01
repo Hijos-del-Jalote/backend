@@ -1,11 +1,12 @@
 from fastapi.testclient import TestClient
 from fastapi import status
 from pony.orm import db_session
-from pony.orm import rollback
 from api.api import app
 from api.router.partidas import *
 from db.models import *
 from tests.test_newplayer import random_user
+from db.mazo_session import *
+from db.cartas_session import *
 
 client = TestClient(app)
 
@@ -56,12 +57,12 @@ def test_crear_mazo():
         # verifico que haya la cant de cartas correcta
         with db_session:
             partida = Partida.get(id = partida.id)
-            cartas = cant_cartas_por_partida(partida)
-            assert len(partida.cartas) == cartas
+            cant_cartas = cant_cartas_por_partida(partida)
+            assert len(partida.cartas) == cant_cartas
             templates = list(TemplateCarta.select())
             assert templates[0].nombre == "Lanzallamas" and templates[0].tipo == Tipo_Carta.accion and templates[0].descripcion == "matar a un jugador"
             assert templates[1].nombre == "Carta Vacia" and templates[1].tipo == Tipo_Carta.accion and templates[1].descripcion == "Esta Carta No Hace Nada"
-            cartinhas = list(Carta.select())
-            for j in range (len(cartinhas)):
-                assert cartinhas[j].template_carta == templates[0] or cartinhas[j].template_carta == templates[1]
+            cartas = list(Carta.select())
+            for j in range (len(cartas)):
+                assert cartas[j].template_carta == templates[0] or cartas[j].template_carta == templates[1]
                 

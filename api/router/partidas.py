@@ -4,8 +4,8 @@ from pony.orm import *
 from db.models import *
 import json 
 from pydantic import BaseModel
-from api.router.cartas import *
-from api.router.mazo import *
+from db.mazo_session import *
+from db.cartas_session import *
 
 partidas_router = APIRouter()
 

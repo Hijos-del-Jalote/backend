@@ -1,7 +1,6 @@
-from fastapi import APIRouter
 from pony.orm import *
 from db.models import *
-from api.router.cartas import *
+from db.cartas_session import *
 
 
 
