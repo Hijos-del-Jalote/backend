@@ -10,19 +10,12 @@ client = TestClient(app)
 
 def test_unir_jugador():
     with db_session:
+        p = db.Partida(nombre="Partida", maxJug=5, minJug=1, sentido=0, iniciada=True)
+        j = db.Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=True)
+        db.commit()
         partidas = list(Partida.select().order_by(lambda p: desc(p.id)))
         jugadores = list(Jugador.select().order_by(lambda p: desc(p.id)))
-        p, j = None, None
-        if len(partidas) == 0:
-            p = db.Partida(nombre="Partida", maxJug=5, minJug=1, sentido=0, iniciada=True)
-            db.commit()
-            partidas = list(Partida.select().order_by(lambda p: desc(p.id)))
-            
-        if len(jugadores) == 0:
-            j = db.Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=True)
-            db.commit()
-            jugadores = list(Jugador.select().order_by(lambda p: desc(p.id)))
-            
+        db.commit()
         ultima_id_partida = partidas[0].id
         ultima_id_jugador = jugadores[0].id
 
@@ -38,4 +31,9 @@ def test_unir_jugador():
 
         assert no_existe_partida_response.status_code == 400
         
+        j.partida = p
+        db.commit()
         
+        jugador_en_partida = client.post(f"partidas/unir?idPartida={p.id}&idJugador={j.id}")
+       
+        assert jugador_en_partida.status_code == 400
