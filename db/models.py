@@ -36,7 +36,7 @@ class Carta(db.Entity):
     descartada = Required(bool, default=False)
     template_carta = Required('TemplateCarta')
     jugador = Optional(Jugador)
-    partida = Required('Partida')
+    partida = Optional('Partida')
 
 
 class TemplateCarta(db.Entity):
