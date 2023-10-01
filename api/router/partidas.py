@@ -22,7 +22,10 @@ async def listar_partidas():
 async def unir_jugador(idPartida:int, idJugador:int):
     with db_session:
         if db.Partida.exists(id=idPartida) & db.Jugador.exists(id=idJugador):
-            partida = db.Partida[idPartida].jugadores.add(db.Jugador[idJugador])
+            if not db.Jugador[idJugador].partida:
+                partida = db.Partida[idPartida].jugadores.add(db.Jugador[idJugador])
+            else:
+                raise HTTPException(status_code=400, detail="Jugador already in Partida")
         else:
             raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
 
@@ -98,4 +101,3 @@ async def iniciar_partida(idPartida: int):
                                     detail="Partida no respeta limites jugadores")
         
         partida.iniciada = True
-
