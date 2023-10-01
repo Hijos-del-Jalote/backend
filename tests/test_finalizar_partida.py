@@ -64,7 +64,7 @@ def test_finalizar_partida():
     assert response.json()["finalizada"] == False
 
     # partida no existente
-    response = client.get(f"partidas/{1234}/estado")
+    response = client.get(f"partidas/1234/estado")
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
     
