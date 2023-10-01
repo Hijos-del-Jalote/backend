@@ -31,4 +31,6 @@ def test_jugar_carta():
         assert(response.status_code == 400)
         
         template_carta.delete()
-        db.commit()
+        jugador.delete()
+        partida.delete()
+        carta.delete()
