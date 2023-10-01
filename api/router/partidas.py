@@ -107,7 +107,7 @@ async def iniciar_partida(idPartida: int):
             jugador.Posicion = posicion
             posicion += 1
 
-@partidas_router.get("/estado", response_model=EstadoPartida, status_code=status.HTTP_200_OK)
+@partidas_router.get(path="/{id}/estado", response_model=EstadoPartida, status_code=status.HTTP_200_OK)
 async def finalizar_partida(idPartida: int) -> EstadoPartida:
     with db_session:
         partida = Partida.get(id=idPartida)

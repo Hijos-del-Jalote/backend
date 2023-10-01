@@ -46,7 +46,7 @@ def test_finalizar_partida():
         ultimojugador.isAlive = True
 
     # partida finalizada
-    response = client.get(f"partidas/estado?idPartida={partida.id}")
+    response = client.get(f"partidas/{id}/estado?idPartida={partida.id}")
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["finalizada"] == True
     assert response.json()["idGanador"] == ultimojugador.id
@@ -59,12 +59,12 @@ def test_finalizar_partida():
         for jugador in partida.jugadores:
             jugador.isAlive = True
 
-    response = client.get(f"partidas/estado?idPartida={partida.id}")
+    response = client.get(f"partidas/{id}/estado?idPartida={partida.id}")
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["finalizada"] == False
 
     # partida no existente
-    response = client.get(f"partidas/estado?idPartida=1234")
+    response = client.get(f"partidas/{id}/estado?idPartida=1234")
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
     
