@@ -23,3 +23,11 @@ class PartidaResponse(BaseModel):
     sentido: bool
     jugadores: List[Dict[str, Union[str,Optional[int]]]]
 
+class JugadorResponse(BaseModel):
+    nombre: str
+    isHost: Optional[bool]
+    posicion: Optional[int]
+    isAlive: Optional[bool]
+    cartas: Optional[List[Dict[int, Union[str, str, str]]]]
+
+

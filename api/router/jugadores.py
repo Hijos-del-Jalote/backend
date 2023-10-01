@@ -1,14 +1,9 @@
 from fastapi import APIRouter, status, HTTPException
 from pony.orm import db_session
 from db.models import Jugador, Rol, db
-from .schemas import PlayerResponse
+from .schemas import PlayerResponse, JugadorResponse
 
 jugadores_router = APIRouter()
-
-@jugadores_router.get("/list")
-async def traer(id:int):
-    with db_session:
-        return db.Jugador[id].to_dict()
 
 @jugadores_router.post(path="", status_code=status.HTTP_201_CREATED)
 async def new_player(nombre: str) -> PlayerResponse:
@@ -20,3 +15,30 @@ async def new_player(nombre: str) -> PlayerResponse:
         else:
             user = Jugador(nombre = nombre)
     return PlayerResponse(id=user.id)
+
+@jugadores_router.get("/{id}", status_code=status.HTTP_200_OK)
+async def obtener_jugador(id: int) -> JugadorResponse:
+    with db_session:
+        jugador = Jugador.get(id=id)
+
+        if jugador:
+            lista_cartas = []
+            for carta in jugador.cartas:
+                dict_carta = {
+                    "id": carta.id,
+                    "nombre": carta.template_carta.nombre,
+                    "descripcion": carta.template_carta.descripcion,
+                    "tipo": carta.template_carta.tipo
+                }
+                lista_cartas.append(dict_carta)
+                
+            jugadorResponse = JugadorResponse(nombre = jugador.nombre,
+                                          isHost = jugador.isHost,
+                                          posicion = jugador.Posicion,
+                                          isAlive = jugador.isAlive,
+                                          cartas = lista_cartas)
+                                          
+        else:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Jugador no existente")
+    return jugadorResponse
