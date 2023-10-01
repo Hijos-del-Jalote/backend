@@ -107,10 +107,10 @@ async def iniciar_partida(idPartida: int):
             jugador.Posicion = posicion
             posicion += 1
 
-@partidas_router.get("/estado", response_model=EstadoPartida, status_code=status.HTTP_200_OK)
-async def finalizar_partida(idPartida: int) -> EstadoPartida:
+@partidas_router.get(path="/{id}/estado", response_model=EstadoPartida, status_code=status.HTTP_200_OK)
+async def finalizar_partida(id: int) -> EstadoPartida:
     with db_session:
-        partida = Partida.get(id=idPartida)
+        partida = Partida.get(id=id)
         if not partida: 
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                     detail="No existe partida con ese id")
