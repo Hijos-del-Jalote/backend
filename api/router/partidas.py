@@ -6,6 +6,8 @@ import json
 from pydantic import BaseModel
 from .schemas import PartidaResponse
 
+from .schemas import PartidaIn, PartidaOut, EstadoPartida
+
 partidas_router = APIRouter()
 
 
@@ -22,15 +24,15 @@ async def listar_partidas():
 async def unir_jugador(idPartida:int, idJugador:int):
     with db_session:
         if db.Partida.exists(id=idPartida) & db.Jugador.exists(id=idJugador):
-            partida = db.Partida[idPartida].jugadores.add(db.Jugador[idJugador])
+            if not db.Jugador[idJugador].partida:
+                partida = db.Partida[idPartida].jugadores.add(db.Jugador[idJugador])
+            else:
+                raise HTTPException(status_code=400, detail="Jugador already in Partida")
         else:
             raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
 
-class PartidaIn(BaseModel):
-    nombrePartida: str
 
-class PartidaOut(BaseModel):
-    idPartida: int
+
 
 @partidas_router.post("",
                      response_model=PartidaOut, 
@@ -100,3 +102,22 @@ async def iniciar_partida(idPartida: int):
         
         partida.iniciada = True
 
+
+@partidas_router.get("/estado", response_model=EstadoPartida, status_code=status.HTTP_200_OK)
+async def finalizar_partida(idPartida: int) -> EstadoPartida:
+    with db_session:
+        partida = Partida.get(id=idPartida)
+        if not partida: 
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail="No existe partida con ese id")
+        
+        # ahora a chequear si finalizo
+        jugadores = []
+        for jugador in partida.jugadores:
+            if jugador.isAlive == True:
+                jugadores.append(jugador)
+                
+    if len(jugadores) == 1: # o sea, hay ganador
+        return EstadoPartida(finalizada=True, idGanador=jugadores[0].id)
+    else:
+        return EstadoPartida(finalizada=False, idGanador=-1)
