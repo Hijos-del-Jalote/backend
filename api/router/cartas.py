@@ -19,9 +19,10 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
     with db_session:
         carta = Carta.get(id=id_carta)
         if carta and carta.jugador:
+            if carta.partida.turnoActual != carta.jugador.Posicion : raise HTTPException(status_code=400, detail="No es el turno del jugador que tiene esta carta") 
             carta.jugador.cartas.remove(carta)
             carta.descartada=True
             if carta.template_carta.nombre == "Lanzallamas":
                 efecto_lanzallamas(id_objetivo)
         else:
-            raise HTTPException(status_code=400, detail="Non existant id for carta")
+            raise HTTPException(status_code=400, detail="No existe el id de la carta ó jugador que la tenga")
