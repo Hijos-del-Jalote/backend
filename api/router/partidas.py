@@ -4,9 +4,11 @@ from pony.orm import *
 from db.models import *
 import json 
 from pydantic import BaseModel
+from db.mazo_session import *
+from db.cartas_session import *
 from .schemas import PartidaResponse
-
 from .schemas import PartidaIn, PartidaOut, EstadoPartida
+
 
 partidas_router = APIRouter()
 
@@ -99,6 +101,9 @@ async def iniciar_partida(idPartida: int):
         if len(partida.jugadores) > partida.maxJug or len(partida.jugadores) < partida.minJug: 
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="Partida no respeta limites jugadores")
+            
+        crear_templates_cartas()
+        crear_mazo(partida)
         
         partida.iniciada = True
         posicion = 0
@@ -125,3 +130,4 @@ async def finalizar_partida(id: int) -> EstadoPartida:
         return EstadoPartida(finalizada=True, idGanador=jugadores[0].id)
     else:
         return EstadoPartida(finalizada=False, idGanador=-1)
+

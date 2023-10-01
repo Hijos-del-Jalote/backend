@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException
 from pony.orm import db_session
 from db.models import *
 
+
+
 cartas_router = APIRouter()
 
 @cartas_router.post("/jugar", status_code=200)
