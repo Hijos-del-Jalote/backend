@@ -101,7 +101,11 @@ async def iniciar_partida(idPartida: int):
                                     detail="Partida no respeta limites jugadores")
         
         partida.iniciada = True
-
+        posicion = 0
+        for jugador in partida.jugadores:
+            jugador.Rol = "humano"
+            jugador.Posicion = posicion
+            posicion += 1
 
 @partidas_router.get("/estado", response_model=EstadoPartida, status_code=status.HTTP_200_OK)
 async def finalizar_partida(idPartida: int) -> EstadoPartida:
