@@ -29,9 +29,17 @@ def test_jugar_carta():
         assert(response.status_code == 400)
         jugador.Posicion=0
         db.commit()
+
+        partida.sentido = False
+        db.commit()
+        turno = partida.turnoActual
+
         #El jugador deberia jugar la carta correctamente
         response = client.post(f'cartas/jugar?id_carta={carta.id}')
         assert(response.status_code == 200)
+
+        assert partida.turnoActual == (turno - 1) % len(partida.jugadores)
+        
         #Jugar la carta nuevamente -> deberia dar error ya que la carta no pertenece a ningun jugador.
         response = client.post(f'cartas/jugar?id_carta={carta.id}')
         assert(response.status_code == 400)
