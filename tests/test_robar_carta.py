@@ -37,9 +37,9 @@ def test_mano_llena():
         partida = Partida[1]
         jugador = select(j for j in partida.jugadores).first()
     
-        for i in range(0,5):
+        for i in range(5):
             response = client.put(f'/jugadores/{jugador.id}/robar')
-        
+
         assert count(jugador.cartas) == 5
     
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -53,8 +53,11 @@ def test_mazo_vacio():
         vaciar_manos(partida)
         descartar_todo(partida)
         commit()
+        
+    with db_session:
         response = client.put(f'/jugadores/{jugador.id}/robar')
         commit()
+        jugador = Jugador.get(id=jugador.id)
         assert count(jugador.cartas) == 1
 
     assert mazo_is_available(partida.cartas)
