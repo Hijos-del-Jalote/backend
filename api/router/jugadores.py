@@ -1,7 +1,8 @@
 from fastapi import APIRouter, status, HTTPException
-from pony.orm import db_session
+from pony.orm import db_session, select
 from db.models import Jugador, Rol, db
 from .schemas import PlayerResponse
+from db.session import robar_carta
 
 jugadores_router = APIRouter()
 
@@ -20,3 +21,9 @@ async def new_player(nombre: str) -> PlayerResponse:
         else:
             user = Jugador(nombre = nombre)
     return PlayerResponse(id=user.id)
+
+@jugadores_router.put(path="/{id}/robar", status_code=status.HTTP_200_OK)
+async def carta_robar(id: int):
+    with db_session:
+        robar_carta(id)
+    return {"detail": "Robo exitoso!"}
