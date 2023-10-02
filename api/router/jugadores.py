@@ -22,6 +22,8 @@ async def new_player(nombre: str) -> PlayerResponse:
             user = Jugador(nombre = nombre)
     return PlayerResponse(id=user.id)
 
-@jugadores_router.put(path="/{id}/robar", status_code=status.HTTP_200_OK, response_description="Sucess")
-async def carta_robar():
-    robar_carta(id)
+@jugadores_router.put(path="/{id}/robar", status_code=status.HTTP_200_OK)
+async def carta_robar(id: int):
+    with db_session:
+        robar_carta(id)
+    return {"detail": "Robo exitoso!"}
