@@ -4,9 +4,10 @@ from db.models import *
 from . import efectos_cartas
 
 
+
+
 cartas_router = APIRouter()
-            
-            
+
 @cartas_router.post("/jugar", status_code=200)
 async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
     with db_session:
@@ -19,3 +20,4 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                 efectos_cartas.efecto_lanzallamas(id_objetivo)
         else:
             raise HTTPException(status_code=400, detail="No existe el id de la carta ó jugador que la tenga")
+

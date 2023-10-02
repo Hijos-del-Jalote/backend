@@ -9,6 +9,7 @@ client = TestClient(app)
 
 
 def test_unir_jugador():
+
     with db_session:
         p = db.Partida(nombre="Partida", maxJug=5, minJug=1, sentido=0, iniciada=True)
         j = db.Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=True)

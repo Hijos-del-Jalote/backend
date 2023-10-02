@@ -4,16 +4,14 @@ from pony.orm import db_session
 from api.api import app
 from api.router.partidas import PartidaIn, PartidaOut
 
-from db.models import Partida, db, Jugador, Rol
+from db.models import Partida, db, Jugador
 
 from tests.test_newplayer import random_user
 
 client = TestClient(app)
 
-
-def test_iniciar_partida():
-    # parte parecida a test_newplayer pero necesito el idHost
-
+def test_finalizar_partida():
+    
     jugadores = []
     for i in range(4):
         username = random_user()
@@ -23,10 +21,6 @@ def test_iniciar_partida():
     
     partida = random_user()
     host = jugadores[0]
-    
-    # partida no existente
-    response = client.put(f"partidas/iniciar?idPartida=1234")
-    assert response.status_code == status.HTTP_404_NOT_FOUND
 
     # creo partida
     response = client.post(f'partidas/?nombrePartida={partida}&idHost={host.id}') 
@@ -34,31 +28,43 @@ def test_iniciar_partida():
     with db_session:
         partida = Partida.get(id = response.json()["idPartida"])
 
-    # cantidad incorrecta de jugadores
-    response = client.put(f"partidas/iniciar?idPartida={partida.id}")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    
     # uno jugadores a partida
     for i in range(1,4):
         client.post(f"partidas/unir?idPartida={partida.id}&idJugador={jugadores[i].id}")
     
     # partida correcta
     response = client.put(f"partidas/iniciar?idPartida={partida.id}")
-    assert response.status_code == status.HTTP_200_OK
-    
-    # verifico que se haya iniciado
+
     with db_session:
         partida = Partida.get(id = partida.id)
-        jugadores = list(partida.jugadores)
-    assert partida.iniciada == True
+        
+        # hago una simulacion de juego
+        for jugador in partida.jugadores:
+            jugador.isAlive = False
+            ultimojugador = jugador
+        
+        ultimojugador.isAlive = True
 
-    # verifico que tengan posicion y rol por defecto
-    posiciones = set()
-    for jugador in jugadores:
-        assert jugador.Posicion not in posiciones
-        posiciones.add(jugador.Posicion)
-        assert jugador.Rol == "humano"
+    # partida finalizada
+    response = client.get(f"partidas/{partida.id}/estado")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["finalizada"] == True
+    assert response.json()["idGanador"] == ultimojugador.id
 
-    # partida ya iniciada
-    response = client.put(f"partidas/iniciar?idPartida={partida.id}")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    # partida no finalizada
+    with db_session:
+        partida = Partida.get(id = partida.id)
+        
+        # hago una simulacion de juego
+        for jugador in partida.jugadores:
+            jugador.isAlive = True
+
+    response = client.get(f"partidas/{partida.id}/estado")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["finalizada"] == False
+
+    # partida no existente
+    response = client.get(f"partidas/1234/estado")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    

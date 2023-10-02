@@ -12,7 +12,8 @@ def test_get_partida_valid():
     with db_session:
 
         jugadores_list = sorted([{"id": j.id,
-                                  "nombre": j.nombre} for j in Partida[1].jugadores], key=lambda j: j['id'])
+                                  "nombre": j.nombre,
+                                  "posicion": j.Posicion} for j in Partida[1].jugadores], key=lambda j: j['id'])
         
         expected_response = {
             'nombre': Partida[1].nombre,

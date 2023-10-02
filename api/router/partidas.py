@@ -4,7 +4,11 @@ from pony.orm import *
 from db.models import *
 import json 
 from pydantic import BaseModel
+from db.mazo_session import *
+from db.cartas_session import *
 from .schemas import PartidaResponse
+from .schemas import PartidaIn, PartidaOut, EstadoPartida
+
 
 partidas_router = APIRouter()
 
@@ -29,11 +33,8 @@ async def unir_jugador(idPartida:int, idJugador:int):
         else:
             raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
 
-class PartidaIn(BaseModel):
-    nombrePartida: str
 
-class PartidaOut(BaseModel):
-    idPartida: int
+
 
 @partidas_router.post("",
                      response_model=PartidaOut, 
@@ -69,7 +70,8 @@ async def obtener_partida(id: int) -> PartidaResponse:
 
         if partida:
             jugadores_list = sorted([{"id": j.id,
-                                      "nombre": j.nombre} for j in partida.jugadores], key=lambda j: j['id'])
+                                      "nombre": j.nombre,
+                                      "posicion": j.Posicion} for j in partida.jugadores], key=lambda j: j['id'])
 
             partidaResp = PartidaResponse(nombre=partida.nombre,
                                           maxJugadores=partida.maxJug,
@@ -99,5 +101,33 @@ async def iniciar_partida(idPartida: int):
         if len(partida.jugadores) > partida.maxJug or len(partida.jugadores) < partida.minJug: 
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="Partida no respeta limites jugadores")
+            
+        crear_templates_cartas()
+        crear_mazo(partida)
         
         partida.iniciada = True
+        posicion = 0
+        for jugador in partida.jugadores:
+            jugador.Rol = "humano"
+            jugador.Posicion = posicion
+            posicion += 1
+
+@partidas_router.get(path="/{id}/estado", response_model=EstadoPartida, status_code=status.HTTP_200_OK)
+async def finalizar_partida(id: int) -> EstadoPartida:
+    with db_session:
+        partida = Partida.get(id=id)
+        if not partida: 
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail="No existe partida con ese id")
+        
+        # ahora a chequear si finalizo
+        jugadores = []
+        for jugador in partida.jugadores:
+            if jugador.isAlive == True:
+                jugadores.append(jugador)
+                
+    if len(jugadores) == 1: # o sea, hay ganador
+        return EstadoPartida(finalizada=True, idGanador=jugadores[0].id)
+    else:
+        return EstadoPartida(finalizada=False, idGanador=-1)
+
