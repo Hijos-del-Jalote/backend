@@ -36,7 +36,6 @@ def cant_cartas_por_partida(partida):
 
 def test_crear_mazo():
     for i in range (4,12):
-        
         jugadores = []
         for j in range(i):
             username = random_user()
@@ -64,5 +63,4 @@ def test_crear_mazo():
             assert templates[1].nombre == "Carta Vacia" and templates[1].tipo == Tipo_Carta.accion and templates[1].descripcion == "Esta Carta No Hace Nada"
             cartas = list(Carta.select())
             for j in range (len(cartas)):
-                assert cartas[j].template_carta == templates[0] or cartas[j].template_carta == templates[1]
-                
+                assert cartas[j].template_carta == templates[0] or cartas[j].template_carta == templates[1] or cartas[j].template_carta == templates[2]

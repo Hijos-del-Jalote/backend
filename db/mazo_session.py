@@ -8,10 +8,11 @@ from db.cartas_session import *
 def crear_mazo_4jugadores(partida):
     lanzallamas= TemplateCarta.get(nombre="Lanzallamas")
     cartavacia= TemplateCarta.get(nombre="Carta Vacia")
+    crear_carta(TemplateCarta.get(nombre="La cosa"),partida)
     for i in range(2):
-        lanza_llamas=crear_carta(lanzallamas,partida)
-    for i in range(32):
-        carta_vacia=crear_carta(cartavacia ,partida)
+        crear_carta(lanzallamas,partida)
+    for i in range(31):
+        crear_carta(cartavacia ,partida)
     return 0
 
 
@@ -19,10 +20,11 @@ def crear_mazo_4jugadores(partida):
 def crear_mazo_5jugadores(partida):
     lanzallamas= TemplateCarta.get(nombre="Lanzallamas")
     cartavacia= TemplateCarta.get(nombre="Carta Vacia")
+    crear_carta(TemplateCarta.get(nombre="La cosa"),partida)
     for i in range(2):
-        carta=crear_carta(lanzallamas,partida)
-    for i in range(32):
-        carta_vacia=crear_carta(cartavacia ,partida)
+        crear_carta(lanzallamas,partida)
+    for i in range(31):
+        crear_carta(cartavacia ,partida)
     return 0
 
 
@@ -30,10 +32,11 @@ def crear_mazo_5jugadores(partida):
 def crear_mazo_6jugadores(partida):
     lanzallamas= TemplateCarta.get(nombre="Lanzallamas")
     cartavacia= TemplateCarta.get(nombre="Carta Vacia")
+    crear_carta(TemplateCarta.get(nombre="La cosa"),partida)
     for i in range(3):
-        carta=crear_carta(lanzallamas,partida)
-    for i in range(32):
-        carta_vacia=crear_carta(cartavacia ,partida)
+        crear_carta(lanzallamas,partida)
+    for i in range(31):
+        crear_carta(cartavacia ,partida)
     return 0
 
 
@@ -41,20 +44,22 @@ def crear_mazo_6jugadores(partida):
 def crear_mazo_7jugadores(partida):
     lanzallamas= TemplateCarta.get(nombre="Lanzallamas")
     cartavacia= TemplateCarta.get(nombre="Carta Vacia")
+    crear_carta(TemplateCarta.get(nombre="La cosa"),partida)
     for i in range(3):
-        carta=crear_carta(lanzallamas,partida)
-    for i in range(56):
-        carta_vacia=crear_carta(cartavacia ,partida)
+        crear_carta(lanzallamas,partida)
+    for i in range(55):
+        crear_carta(cartavacia ,partida)
     return 0
 
 @db_session
 def crear_mazo_8jugadores(partida):
     lanzallamas= TemplateCarta.get(nombre="Lanzallamas")
     cartavacia= TemplateCarta.get(nombre="Carta Vacia")
+    crear_carta(TemplateCarta.get(nombre="La cosa"),partida)
     for i in range(4):
-        carta=crear_carta(lanzallamas,partida)
-    for i in range(60):
-        carta_vacia=crear_carta(cartavacia ,partida)
+        crear_carta(lanzallamas,partida)
+    for i in range(59):
+        crear_carta(cartavacia ,partida)
     return 0
 
 
@@ -62,10 +67,11 @@ def crear_mazo_8jugadores(partida):
 def crear_mazo_9jugadores(partida):
     lanzallamas= TemplateCarta.get(nombre="Lanzallamas")
     cartavacia= TemplateCarta.get(nombre="Carta Vacia")
+    crear_carta(TemplateCarta.get(nombre="La cosa"),partida)
     for i in range(4):
-        carta=crear_carta(lanzallamas,partida)
-    for i in range(64):
-        carta_vacia=crear_carta(cartavacia ,partida)
+        crear_carta(lanzallamas,partida)
+    for i in range(63):
+        crear_carta(cartavacia ,partida)
     return 0
 
 
@@ -74,10 +80,11 @@ def crear_mazo_9jugadores(partida):
 def crear_mazo_10jugadores(partida):
     lanzallamas= TemplateCarta.get(nombre="Lanzallamas")
     cartavacia= TemplateCarta.get(nombre="Carta Vacia")
+    crear_carta(TemplateCarta.get(nombre="La cosa"),partida)
     for i in range(4):
-        carta=crear_carta(lanzallamas,partida)
-    for i in range(64):
-        carta_vacia=crear_carta(cartavacia ,partida)
+        crear_carta(lanzallamas,partida)
+    for i in range(63):
+        crear_carta(cartavacia ,partida)
     return 0
 
 
@@ -85,20 +92,22 @@ def crear_mazo_10jugadores(partida):
 def crear_mazo_11jugadores(partida):
     lanzallamas= TemplateCarta.get(nombre="Lanzallamas")
     cartavacia= TemplateCarta.get(nombre="Carta Vacia")
+    crear_carta(TemplateCarta.get(nombre="La cosa"),partida)
     for i in range(5):
-        carta=crear_carta(lanzallamas,partida)
-    for i in range(80):
-        carta_vacia=crear_carta(cartavacia ,partida)
+        crear_carta(lanzallamas,partida)
+    for i in range(79):
+        crear_carta(cartavacia ,partida)
     return 0
 
 @db_session
 def crear_mazo_12jugadores(partida):
     lanzallamas= TemplateCarta.get(nombre="Lanzallamas")
     cartavacia= TemplateCarta.get(nombre="Carta Vacia")
+    crear_carta(TemplateCarta.get(nombre="La cosa"),partida)
     for i in range(5):
-        carta=crear_carta(lanzallamas,partida)
-    for i in range(80):
-        carta_vacia=crear_carta(cartavacia ,partida)
+        crear_carta(lanzallamas,partida)
+    for i in range(79):
+        crear_carta(cartavacia ,partida)
     return 0
 
 def crear_mazo(partida):
