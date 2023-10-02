@@ -30,7 +30,7 @@ async def obtener_jugador(id: int) -> JugadorResponse:
                 "nombre": carta.template_carta.nombre,
                 "descripcion": carta.template_carta.descripcion,
                 "tipo": carta.template_carta.tipo
-            } for carta in Jugador[1].cartas], key=lambda c: c['id'])
+            } for carta in jugador.cartas], key=lambda c: c['id'])
                 
             jugadorResponse = JugadorResponse(nombre = jugador.nombre,
                                           isHost = jugador.isHost,
