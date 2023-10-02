@@ -73,7 +73,8 @@ async def obtener_partida(id: int) -> PartidaResponse:
         if partida:
             jugadores_list = sorted([{"id": j.id,
                                       "nombre": j.nombre,
-                                      "posicion": j.Posicion} for j in partida.jugadores], key=lambda j: j['id'])
+                                      "posicion": j.Posicion,
+                                      "isAlive": j.isAlive} for j in partida.jugadores], key=lambda j: j['id'])
 
             partidaResp = PartidaResponse(nombre=partida.nombre,
                                           maxJugadores=partida.maxJug,

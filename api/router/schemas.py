@@ -21,7 +21,7 @@ class PartidaResponse(BaseModel):
     iniciada: bool
     turnoActual: Optional[int]
     sentido: bool
-    jugadores: List[Dict[str, Union[str,Optional[int]]]]
+    jugadores: List[Dict[str, Union[str,Optional[int],bool]]]
 
 class JugadorResponse(BaseModel):
     nombre: str
