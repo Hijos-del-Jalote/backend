@@ -24,9 +24,9 @@ def robar_carta(idJugador: int):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="El jugador no está en una partida")
         else:
-            carta = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).first()
+            carta = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).random(1)
             if not carta:
                 rellenar_mazo(partida)
                 commit()
-                carta = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).first()
+                carta = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).random(1)
             agregar_carta_en_mano(jugador.cartas, carta)
