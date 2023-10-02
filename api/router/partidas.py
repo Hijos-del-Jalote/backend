@@ -6,6 +6,7 @@ import json
 from pydantic import BaseModel
 from db.mazo_session import *
 from db.cartas_session import *
+from db.session import *
 from .schemas import PartidaResponse
 from .schemas import PartidaIn, PartidaOut, EstadoPartida
 
@@ -104,13 +105,15 @@ async def iniciar_partida(idPartida: int):
             
         crear_templates_cartas()
         crear_mazo(partida)
-        
+        commit()
+        repartir_cartas(partida)
         partida.iniciada = True
         posicion = 0
         for jugador in partida.jugadores:
             jugador.Rol = "humano"
             jugador.Posicion = posicion
             posicion += 1
+
 
 @partidas_router.get(path="/{id}/estado", response_model=EstadoPartida, status_code=status.HTTP_200_OK)
 async def finalizar_partida(id: int) -> EstadoPartida:

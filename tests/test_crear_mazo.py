@@ -36,7 +36,6 @@ def cant_cartas_por_partida(partida):
 
 def test_crear_mazo():
     for i in range (4,12):
-        
         jugadores = []
         for j in range(i):
             username = random_user()

@@ -1,7 +1,6 @@
 from pony.orm import  *
 from db.models import *
 
-cantidad_cartas_por_jugador = 4
 
 @db_session
 def crear_template_carta( nombre ,descripcion , tipo):
