@@ -107,7 +107,7 @@ async def iniciar_partida(idPartida: int):
         crear_mazo(partida)
         
         partida.iniciada = True
-        partida.turnoActual = randint(0,len(partida.jugadores))
+        partida.turnoActual = randint(0,len(partida.jugadores)-1)
         posicion = 0
         for jugador in partida.jugadores:
             jugador.Rol = "humano"
