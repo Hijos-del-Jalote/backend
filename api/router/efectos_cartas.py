@@ -8,6 +8,7 @@ def efecto_lanzallamas(id_objetivo):
         if (id_objetivo != None) & (Jugador.exists(id=id_objetivo)):
             objetivo = Jugador[id_objetivo]
             objetivo.isAlive = False
+            objetivo.cartas.clear()
             db.commit()
         else:
             raise HTTPException(status_code=400, detail="Jugador objetivo No existe o No proporcionado")

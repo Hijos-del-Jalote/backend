@@ -19,14 +19,21 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
 
             partida = carta.partida
                 
-            if partida.sentido:
-                partida.turnoActual = (partida.turnoActual + 1) % len(partida.jugadores)
-            else:
-                partida.turnoActual = (partida.turnoActual - 1) % len(partida.jugadores)
-
-
             if carta.template_carta.nombre == "Lanzallamas":
                 efectos_cartas.efecto_lanzallamas(id_objetivo)
+                
+            if partida.sentido:
+                for i in range(1, len(partida.jugadores)):
+                    pos = (partida.turnoActual+i) % len(partida.jugadores)
+                    if Jugador.get(Posicion=pos, partida=partida).isAlive:
+                        partida.turnoActual = pos
+                        break
+            else:
+                for i in range(1, len(partida.jugadores)):
+                    pos = (partida.turnoActual-i) % len(partida.jugadores)
+                    if Jugador.get(Posicion=pos, partida=partida).isAlive:
+                        partida.turnoActual = pos
+                        break
 
         else:
             raise HTTPException(status_code=400, detail="No existe el id de la carta ó jugador que la tenga")
