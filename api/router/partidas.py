@@ -4,9 +4,11 @@ from pony.orm import *
 from db.models import *
 import json 
 from pydantic import BaseModel
+from db.mazo_session import *
+from db.cartas_session import *
 from .schemas import PartidaResponse
-
 from .schemas import PartidaIn, PartidaOut, EstadoPartida
+
 
 partidas_router = APIRouter()
 
@@ -99,14 +101,21 @@ async def iniciar_partida(idPartida: int):
         if len(partida.jugadores) > partida.maxJug or len(partida.jugadores) < partida.minJug: 
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="Partida no respeta limites jugadores")
+            
+        crear_templates_cartas()
+        crear_mazo(partida)
         
         partida.iniciada = True
+        posicion = 0
+        for jugador in partida.jugadores:
+            jugador.Rol = "humano"
+            jugador.Posicion = posicion
+            posicion += 1
 
-
-@partidas_router.get("/estado", response_model=EstadoPartida, status_code=status.HTTP_200_OK)
-async def finalizar_partida(idPartida: int) -> EstadoPartida:
+@partidas_router.get(path="/{id}/estado", response_model=EstadoPartida, status_code=status.HTTP_200_OK)
+async def finalizar_partida(id: int) -> EstadoPartida:
     with db_session:
-        partida = Partida.get(id=idPartida)
+        partida = Partida.get(id=id)
         if not partida: 
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                     detail="No existe partida con ese id")
@@ -121,3 +130,4 @@ async def finalizar_partida(idPartida: int) -> EstadoPartida:
         return EstadoPartida(finalizada=True, idGanador=jugadores[0].id)
     else:
         return EstadoPartida(finalizada=False, idGanador=-1)
+
