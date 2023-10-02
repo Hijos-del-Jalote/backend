@@ -10,16 +10,12 @@ client = TestClient(app)
 def test_get_jugador_valido():
     response = client.get('jugadores/1')
     with db_session:
-
-        lista_cartas = []
-        for carta in Jugador[1].cartas:
-            dict_carta = {
+        lista_cartas = sorted([{
                 "id": carta.id,
                 "nombre": carta.template_carta.nombre,
                 "descripcion": carta.template_carta.descripcion,
                 "tipo": carta.template_carta.tipo
-            }
-            lista_cartas.append(dict_carta)
+            } for carta in Jugador[1].cartas], key=lambda c: c['id'])
 
         expected_response = {
             'nombre': Jugador[1].nombre,

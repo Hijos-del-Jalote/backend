@@ -22,15 +22,12 @@ async def obtener_jugador(id: int) -> JugadorResponse:
         jugador = Jugador.get(id=id)
 
         if jugador:
-            lista_cartas = []
-            for carta in jugador.cartas:
-                dict_carta = {
-                    "id": carta.id,
-                    "nombre": carta.template_carta.nombre,
-                    "descripcion": carta.template_carta.descripcion,
-                    "tipo": carta.template_carta.tipo
-                }
-                lista_cartas.append(dict_carta)
+            lista_cartas = sorted([{
+                "id": carta.id,
+                "nombre": carta.template_carta.nombre,
+                "descripcion": carta.template_carta.descripcion,
+                "tipo": carta.template_carta.tipo
+            } for carta in Jugador[1].cartas], key=lambda c: c['id'])
                 
             jugadorResponse = JugadorResponse(nombre = jugador.nombre,
                                           isHost = jugador.isHost,

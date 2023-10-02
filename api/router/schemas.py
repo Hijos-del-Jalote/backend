@@ -28,6 +28,6 @@ class JugadorResponse(BaseModel):
     isHost: Optional[bool]
     posicion: Optional[int]
     isAlive: Optional[bool]
-    cartas: Optional[List[Dict[int, Union[str, str, str]]]]
+    cartas: Optional[List[Dict[str,Union[str,int]]]]
 
 
