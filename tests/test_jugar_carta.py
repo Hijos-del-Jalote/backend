@@ -20,7 +20,7 @@ def test_jugar_carta():
         #Crear un jugador
         jugador = Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=True, Posicion=1)
         #Crear una partida con jugador host
-        partida = Partida(nombre="Partida", maxJug=5, minJug=1, sentido=0, iniciada=True, turnoActual=0, jugadores={jugador})
+        partida = Partida(nombre="Partida", maxJug=5, minJug=1, iniciada=True, turnoActual=0, sentido = False, jugadores={jugador})
         #Crear carta y asignarsela al jugador y partida
         carta = Carta(descartada=False, template_carta=template_carta, partida=partida, jugador=jugador)
         db.commit()
@@ -29,9 +29,7 @@ def test_jugar_carta():
         assert(response.status_code == 400)
         jugador.Posicion=0
         db.commit()
-
-        partida.sentido = False
-        db.commit()
+        
         turno = partida.turnoActual
 
         #El jugador deberia jugar la carta correctamente
