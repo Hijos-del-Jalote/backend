@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pony.orm import db_session
 from db.models import *
+from . import efectos_cartas
+
 
 
 
@@ -14,6 +16,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
             if carta.partida.turnoActual != carta.jugador.Posicion : raise HTTPException(status_code=400, detail="No es el turno del jugador que tiene esta carta") 
             carta.jugador.cartas.remove(carta)
             carta.descartada=True
+
             partida = carta.partida
                 
             if partida.sentido:
@@ -21,6 +24,10 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
             else:
                 partida.turnoActual = (partida.turnoActual - 1) % len(partida.jugadores)
 
+
+            if carta.template_carta.nombre == "Lanzallamas":
+                efectos_cartas.efecto_lanzallamas(id_objetivo)
+
         else:
             raise HTTPException(status_code=400, detail="No existe el id de la carta ó jugador que la tenga")
-            
+

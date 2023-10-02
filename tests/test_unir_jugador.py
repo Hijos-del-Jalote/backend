@@ -38,3 +38,6 @@ def test_unir_jugador():
         jugador_en_partida = client.post(f"partidas/unir?idPartida={p.id}&idJugador={j.id}")
        
         assert jugador_en_partida.status_code == 400
+        
+        p.delete()
+        j.delete()
