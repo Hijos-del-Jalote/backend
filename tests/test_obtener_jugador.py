@@ -1,13 +1,26 @@
 from fastapi.testclient import TestClient
 from fastapi import status
-from pony.orm import db_session
+from pony.orm import db_session, count
 from api.api import app
 from db.models import Jugador
 
 client = TestClient(app)
 
+def cargar_mano(jugador: Jugador):
+    with db_session:
+        partida = jugador.partida
+        cartas = partida.cartas
+        for c in cartas:
+            if(count(jugador.cartas) < 4):
+                jugador.cartas.add(c)
+            else:
+                break
+
 
 def test_get_jugador_valido():
+    with db_session:
+        cargar_mano(Jugador[1])
+
     response = client.get('jugadores/1')
     with db_session:
         lista_cartas = sorted([{
