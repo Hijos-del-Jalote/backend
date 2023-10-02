@@ -8,6 +8,7 @@ from db.mazo_session import *
 from db.cartas_session import *
 from .schemas import PartidaResponse
 from .schemas import PartidaIn, PartidaOut, EstadoPartida
+from random import randint
 
 
 partidas_router = APIRouter()
@@ -106,6 +107,7 @@ async def iniciar_partida(idPartida: int):
         crear_mazo(partida)
         
         partida.iniciada = True
+        partida.turnoActual = randint(0,len(partida.jugadores))
         posicion = 0
         for jugador in partida.jugadores:
             jugador.Rol = "humano"
