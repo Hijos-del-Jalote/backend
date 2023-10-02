@@ -63,5 +63,4 @@ def test_crear_mazo():
             assert templates[1].nombre == "Carta Vacia" and templates[1].tipo == Tipo_Carta.accion and templates[1].descripcion == "Esta Carta No Hace Nada"
             cartas = list(Carta.select())
             for j in range (len(cartas)):
-                assert cartas[j].template_carta == templates[0] or cartas[j].template_carta == templates[1]
-                
+                assert cartas[j].template_carta == templates[0] or cartas[j].template_carta == templates[1] or cartas[j].template_carta == templates[2]
