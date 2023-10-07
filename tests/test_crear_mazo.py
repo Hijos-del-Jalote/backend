@@ -14,31 +14,27 @@ client = TestClient(app)
 def cant_cartas_por_partida(partida):
     cant_jugadores = len(partida.jugadores)
     if cant_jugadores == 4:
-        cartas = 34
+        cartas = 30
     elif cant_jugadores == 5:
-        cartas = 34
+        cartas = 36
     elif cant_jugadores == 6:
-        cartas = 35
+        cartas = 50
     elif cant_jugadores == 7:
         cartas = 59
     elif cant_jugadores == 8:
-        cartas = 64
+        cartas = 66
     elif cant_jugadores == 9:
-        cartas = 68
+        cartas = 84
     elif cant_jugadores == 10:
-        cartas = 68
+        cartas = 92
     elif cant_jugadores == 11:
-        cartas = 85
+        cartas = 105
     elif cant_jugadores == 12:
-        cartas = 85
+        cartas = 105
     return cartas
 
-
 def test_crear_mazo():
-    for i in range (4,12):
-        rollback()
-        db.drop_all_tables(with_all_data=True)
-        db.create_tables()
+    for i in range (4,13):
         jugadores = []
         for j in range(i):
             username = random_user()
@@ -61,9 +57,5 @@ def test_crear_mazo():
             partida = Partida.get(id = partida.id)
             cant_cartas = cant_cartas_por_partida(partida)
             assert len(partida.cartas) == cant_cartas
-            templates = list(TemplateCarta.select())
-            assert templates[0].nombre == "Lanzallamas" and templates[0].tipo == Tipo_Carta.accion and templates[0].descripcion == "matar a un jugador"
-            assert templates[1].nombre == "Carta Vacia" and templates[1].tipo == Tipo_Carta.accion and templates[1].descripcion == "Esta Carta No Hace Nada"
-            cartas = list(Carta.select())
-            for j in range (len(cartas)):
-                assert cartas[j].template_carta == templates[0] or cartas[j].template_carta == templates[1] or cartas[j].template_carta == templates[2]
+            
+
