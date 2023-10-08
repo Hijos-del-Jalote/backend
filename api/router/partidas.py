@@ -10,7 +10,8 @@ from db.session import *
 from .schemas import PartidaResponse
 from .schemas import PartidaIn, PartidaOut, EstadoPartida
 from random import randint
-
+from api.ws import manager
+from fastapi.websockets import *
 
 partidas_router = APIRouter()
 
@@ -34,7 +35,9 @@ async def unir_jugador(idPartida:int, idJugador:int):
                 raise HTTPException(status_code=400, detail="Jugador already in Partida")
         else:
             raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
-
+    ###################Esto puede que este muy mal:###########################
+    dumper: PartidaResponse = obtener_partida(idPartida) 
+    await manager.broadcast(idPartida,dumper.model_dump_json())
 
 
 
@@ -137,3 +140,6 @@ async def finalizar_partida(id: int) -> EstadoPartida:
     else:
         return EstadoPartida(finalizada=False, idGanador=-1)
 
+@partidas_router.websocket("/{id}/ws")
+async def websocket_endpoint(websocket: WebSocket, id: int):
+    await manager.connect(websocket, id)

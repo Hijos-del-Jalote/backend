@@ -1,23 +1,26 @@
 from fastapi.websockets import *
 from typing import List, Dict
-from .router.partidas import partidas_router
 
 
-active_connections: Dict[int,List[WebSocket]] = {}
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[int,List[WebSocket]] = {}
 
-async def connect(websocket: WebSocket, idPartida: int):
-    await websocket.accept()
-    if idPartida in active_connections:
-        active_connections[idPartida].append(websocket)
-    else:
-        active_connections[idPartida] = [websocket]
+    async def connect(self, websocket: WebSocket, idPartida: int):
+        await websocket.accept()
+        if idPartida in self.active_connections:
+            self.active_connections[idPartida].append(websocket)
+        else:
+            self.active_connections[idPartida] = [websocket]
 
-def disconnect(websocket: WebSocket, idPartida: int):
-        active_connections[idPartida].remove(websocket)
+    def disconnect(self, websocket: WebSocket, idPartida: int):
+            self.active_connections[idPartida].remove(websocket)
 
-
-
-@partidas_router.websocket("/{id}/ws")
-async def websocket_endpoint(websocket: WebSocket, id: int):
-    await connect(websocket, id)
+    async def broadcast(self, idPartida: int, data: str):
+        if idPartida in self.active_connections:
+            for connection in self.active_connections.get(idPartida):
+                await connection.send_json(data)
+        else:
+            print("no hay partiditas en connections :c")
+manager = ConnectionManager()
     

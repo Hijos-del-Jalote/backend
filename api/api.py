@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from api.router.cartas import cartas_router
 from api.router.jugadores import jugadores_router
-from api.router.partidas import partidas_router
-from .ws import websocket_endpoint
+from api.router.partidas import partidas_router, websocket_endpoint
 
 from fastapi.middleware.cors import CORSMiddleware
 
