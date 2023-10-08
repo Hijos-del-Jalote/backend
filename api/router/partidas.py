@@ -141,7 +141,7 @@ async def finalizar_partida(id: int) -> EstadoPartida:
 
 @partidas_router.websocket("/{idPartida}/ws")
 async def websocket_endpoint(websocket: WebSocket, idPartida: int):
-    await manager.connect(websocket)
+    await manager.connect(websocket, idPartida)
     
     try:
         while True:
@@ -151,4 +151,4 @@ async def websocket_endpoint(websocket: WebSocket, idPartida: int):
             pass
 
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        manager.disconnect(websocket, idPartida)

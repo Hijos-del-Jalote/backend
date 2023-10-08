@@ -25,30 +25,37 @@ def test_partida(id: int) -> PartidaResponse:
 
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: List[WebSocket] = [] # esto me guarda todas las conexiones juntas, habría que separarlas por partidas
+        self.active_connections: Dict[int, List[WebSocket]] = {}
 
-    async def connect(self, websocket: WebSocket): 
+    async def connect(self, websocket: WebSocket, idPartida: int): 
         await websocket.accept()
         
-        self.active_connections.append(websocket)
+        if idPartida not in self.active_connections:
+            self.active_connections[idPartida] = []
+
+        self.active_connections[idPartida].append(websocket)
         
 
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+    def disconnect(self, websocket: WebSocket, idPartida: int):
+        if idPartida in self.active_connections:
+            self.active_connections[idPartida].remove(websocket)
 
-    async def broadcast(self, data: str):
-        for connection in self.active_connections:
-            print(f'broadcasting to {connection}')
-            await connection.send_json(data)
+    async def broadcast(self, data: str, idPartida: int):
+        if idPartida in self.active_connections:
+            for connection in self.active_connections[idPartida]:
+                print(f'broadcasting to {connection}')
+                await connection.send_json(data)
 
         
 
     async def handle_data(self, data: str, idPartida: int):
-        # acá iría un match case con los posibles casos, por ahora solo esta lo necesario para el lobby
-        dumper: PartidaResponse = test_partida(idPartida) 
-        await self.broadcast(dumper.model_dump_json())
-
-
+        
+        match data:
+            case "unir": # or cualquier otro que requiera este json.
+                dumper: PartidaResponse = test_partida(idPartida)
+                await self.broadcast(dumper.model_dump_json(), idPartida)
+            case _:
+                print("El resto")
 
 manager = ConnectionManager()
     
