@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from api.router.cartas import cartas_router
 from api.router.jugadores import jugadores_router
 from api.router.partidas import partidas_router
+from .ws import websocket_endpoint
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,3 +19,5 @@ app.add_middleware(
 app.include_router(cartas_router, prefix="/cartas", tags=["cartas"])
 app.include_router(jugadores_router, prefix="/jugadores", tags=["jugadores"])
 app.include_router(partidas_router, prefix="/partidas", tags=["partidas"])
+
+app.add_websocket_route("/partidas/{id}/ws", websocket_endpoint)
