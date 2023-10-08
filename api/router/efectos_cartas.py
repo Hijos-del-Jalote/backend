@@ -12,3 +12,12 @@ def efecto_lanzallamas(id_objetivo):
             db.commit()
         else:
             raise HTTPException(status_code=400, detail="Jugador objetivo No existe o No proporcionado")
+            
+def vigila_tus_espaldas(partida):
+    with db_session:
+        if partida:
+            partida.sentido = not partida.sentido
+            db.commit()
+        else:
+            raise HTTPException(status_code=400, detail="Partida no existente")
+            

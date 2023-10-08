@@ -21,7 +21,9 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                 
             if carta.template_carta.nombre == "Lanzallamas":
                 efectos_cartas.efecto_lanzallamas(id_objetivo)
-                
+            elif carta.template_carta.nombre == "Vigila tus espaldas":
+                efectos_cartas.vigila_tus_espaldas(partida)
+            
             if partida.sentido:
                 for i in range(1, len(partida.jugadores)):
                     pos = (partida.turnoActual+i) % len(partida.jugadores)
