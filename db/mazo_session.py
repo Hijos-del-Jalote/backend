@@ -4,50 +4,142 @@ from db.cartas_session import *
 
 CARTAS_POR_JUGADOR = {
     4 : {
-		'lanzallamas':2,
-		'vacias':31
+        'Infectado':8,
+		'Lanzallamas':2,
+		'Carta Vacia':4,
+        'Sospecha':4,
+        'Seduccion':2,
+        'Mas vale que corras':2,
+        'Cambio de lugar':2,
+        'Analisis':0,
+        'Whisky':1,
+        'Hacha':1,
+        'Vigila tus espaldas':1,
+        'Determinacion':2,
+        'La cosa':1,
 	},
     5 : {
-		'lanzallamas':2,
-		'vacias':31
+		'Infectado':8,
+		'Lanzallamas':2,
+		'Carta Vacia':9,
+        'Sospecha':4,
+        'Seduccion':2,
+        'Mas vale que corras':2,
+        'Cambio de lugar':2,
+        'Analisis':1,
+        'Whisky':1,
+        'Hacha':1,
+        'Vigila tus espaldas':1,
+        'Determinacion':2,
+        'La cosa':1,
     },
-    6 : {'lanzallamas':3,
-        'vacias':31
+    6 : {'Infectado':10,
+		'Lanzallamas':3,
+		'Carta Vacia':16,
+        'Sospecha':4,
+        'Seduccion':3,
+        'Mas vale que corras':2,
+        'Cambio de lugar':2,
+        'Analisis':2,
+        'Whisky':2,
+        'Hacha':1,
+        'Vigila tus espaldas':1,
+        'Determinacion':3,
+        'La cosa':1,
     },
-    7 : {'lanzallamas':3,
-        'vacias':55
+    7 : {'Infectado':12,
+		'Lanzallamas':3,
+		'Carta Vacia':19,
+        'Sospecha':5,
+        'Seduccion':4,
+        'Mas vale que corras':3,
+        'Cambio de lugar':3,
+        'Analisis':2,
+        'Whisky':2,
+        'Hacha':1,
+        'Vigila tus espaldas':1,
+        'Determinacion':3,
+        'La cosa':1,
     },
-    8 : {'lanzallamas':4,
-        'vacias':59
+    8 : {'Infectado':13,
+		'Lanzallamas':3,
+		'Carta Vacia':23,
+        'Sospecha':6,
+        'Seduccion':5,
+        'Mas vale que corras':3,
+        'Cambio de lugar':3,
+        'Analisis':2,
+        'Whisky':2,
+        'Hacha':1,
+        'Vigila tus espaldas':1,
+        'Determinacion':3,
+        'La cosa':1,
     },
-    9: {'lanzallamas':4,
-        'vacias':63
+    9: {'Infectado':15,
+		'Lanzallamas':4,
+		'Carta Vacia':31,
+        'Sospecha':7,
+        'Seduccion':5,
+        'Mas vale que corras':4,
+        'Cambio de lugar':4,
+        'Analisis':3,
+        'Whisky':2,
+        'Hacha':2,
+        'Vigila tus espaldas':2,
+        'Determinacion':4,
+        'La cosa':1,
     },
-    10: {'lanzallamas':4,
-        'vacias':63
+    10: {'Infectado':17,
+		'Lanzallamas':4,
+		'Carta Vacia':33,
+        'Sospecha':8,
+        'Seduccion':6,
+        'Mas vale que corras':4,
+        'Cambio de lugar':4,
+        'Analisis':3,
+        'Whisky':3,
+        'Hacha':2,
+        'Vigila tus espaldas':2,
+        'Determinacion':5,
+        'La cosa':1,
     },
-    11: {'lanzallamas':5,
-        'vacias':79
+    11: {'Infectado':20,
+		'Lanzallamas':5,
+		'Carta Vacia':39,
+        'Sospecha':8,
+        'Seduccion':7,
+        'Mas vale que corras':5,
+        'Cambio de lugar':5,
+        'Analisis':3,
+        'Whisky':3,
+        'Hacha':2,
+        'Vigila tus espaldas':2,
+        'Determinacion':5,
+        'La cosa':1,
     },
-    12: {'lanzallamas':5,
-        'vacias':79
+    12: {'Infectado':20,
+		'Lanzallamas':5,
+		'Carta Vacia':39,
+        'Sospecha':8,
+        'Seduccion':7,
+        'Mas vale que corras':5,
+        'Cambio de lugar':5,
+        'Analisis':3,
+        'Whisky':3,
+        'Hacha':2,
+        'Vigila tus espaldas':2,
+        'Determinacion':5,
+        'La cosa':1,
     }
 }
 
 
 @db_session
 def crear_mazo_jugadores(partida, cantidad_jug):
-    n_lanzallamas = CARTAS_POR_JUGADOR[cantidad_jug]['lanzallamas']
-    n_vacias = CARTAS_POR_JUGADOR[cantidad_jug]['vacias']
-    lanzallamas= TemplateCarta.get(nombre="Lanzallamas")
-    cartavacia= TemplateCarta.get(nombre="Carta Vacia")
-    crear_carta(TemplateCarta.get(nombre="La cosa"),partida)
-    for _ in range(n_lanzallamas):
-        crear_carta(lanzallamas,partida)
-    for _ in range(n_vacias):
-        crear_carta(cartavacia ,partida)
+    for nombres in TemplateCarta.select():
+        for _ in range(CARTAS_POR_JUGADOR[cantidad_jug][nombres.nombre]):
+            crear_carta(TemplateCarta.get(nombre=nombres.nombre),partida)
     return 0
-
 
 def crear_mazo(partida):
     num_jugadores = len(partida.jugadores)
