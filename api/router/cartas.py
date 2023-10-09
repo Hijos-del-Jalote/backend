@@ -38,6 +38,9 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                     if Jugador.get(Posicion=pos, partida=partida).isAlive:
                         partida.turnoActual = pos
                         break
+            
+            # por ahora aca porque esto marca el fin del turno, desp lo pondre en intercambiar carta
+            fin_partida(partida.id)
 
         else:
             raise HTTPException(status_code=400, detail="No existe el id de la carta ó jugador que la tenga")
