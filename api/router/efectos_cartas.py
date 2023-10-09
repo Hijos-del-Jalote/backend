@@ -21,3 +21,15 @@ def vigila_tus_espaldas(partida):
         else:
             raise HTTPException(status_code=400, detail="Partida no existente")
             
+def cambio_de_lugar(jugador1, jugador2):
+    with db_session:
+        if jugador1 and jugador2:
+            cant = len(jugador1.partida.jugadores)
+            if jugador1.Posicion+1 % cant == jugador2.Posicion or jugador1.Posicion-1 % cant == jugador2.Posicion:
+                p1 = jugador1.Posicion
+                jugador1.Posicion = jugador2.Posicion
+                jugador2.Posicion = p1
+            else:
+                raise HTTPException(status_code=400, detail="Los jugadores no son adyacentes")
+        else:
+            raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")
