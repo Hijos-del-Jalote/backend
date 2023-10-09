@@ -1,17 +1,14 @@
-from typing import Optional
 from fastapi import APIRouter, HTTPException, status
 from pony.orm import *
 from db.models import *
-import json 
-from pydantic import BaseModel
 from db.mazo_session import *
 from db.cartas_session import *
-from db.session import *
-from .schemas import PartidaResponse
-from .schemas import PartidaIn, PartidaOut, EstadoPartida
+from db.partidas_session import *
+from .schemas import *
 from random import randint
 from api.ws import manager
 from fastapi.websockets import *
+
 
 partidas_router = APIRouter()
 
@@ -73,18 +70,7 @@ async def obtener_partida(id: int) -> PartidaResponse:
         partida = Partida.get(id=id)
 
         if partida:
-            jugadores_list = sorted([{"id": j.id,
-                                      "nombre": j.nombre,
-                                      "posicion": j.Posicion,
-                                      "isAlive": j.isAlive} for j in partida.jugadores], key=lambda j: j['id'])
-
-            partidaResp = PartidaResponse(nombre=partida.nombre,
-                                          maxJugadores=partida.maxJug,
-                                          minJugadores=partida.minJug,
-                                          iniciada=partida.iniciada,
-                                          turnoActual=partida.turnoActual,
-                                          sentido=partida.sentido,
-                                          jugadores=jugadores_list)
+            partidaResp = get_partida(id)
                                           
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,

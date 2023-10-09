@@ -1,9 +1,8 @@
 from fastapi import APIRouter, status, HTTPException
-from pony.orm import db_session, select
-from db.models import Jugador, Rol, db
-
+from pony.orm import db_session
+from db.models import Jugador
+from db.cartas_session import robar_carta
 from .schemas import PlayerResponse, JugadorResponse
-from db.session import robar_carta
 
 jugadores_router = APIRouter()
 
