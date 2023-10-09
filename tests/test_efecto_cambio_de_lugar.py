@@ -41,7 +41,24 @@ def test_efecto_vigila_tus_espaldas():
         #Jugar carta nuevamente
         response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}')
         assert(response.status_code == 400)
-
+        #Hacer que haya una puerta trancada de por medio
+        jugador2.Posicion = 1
+        jugador1.blockDer = True
+        carta.jugador = jugador1
+        db.commit()
+        #Jugar carta nuevamente
+        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}')
+        assert(response.status_code == 400)
+        #Hacer que jugador objetivo este en cuarentena
+        jugador2.cuarentena = True
+        jugador1.blockDer = False
+        carta.jugador = jugador1
+        db.commit()
+        #Jugar carta nuevamente
+        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}')
+        assert(response.status_code == 400)
+        
+        
         if l:
             template_carta.delete()
         jugador1.delete()
