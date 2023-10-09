@@ -38,6 +38,9 @@ run_all_tests:
 	rm db/database_test.sqlite
 	pytest tests/test_finalizar_partida.py
 	rm db/database_test.sqlite
+	pytest tests/test_cartas_accion.py
+	rm db/database_test.sqlite
 	make run_obtener_partida_test
 	make run_robar_carta_test
 	make run_obtener_jugador_test
+	make run_cartas_accion_test
