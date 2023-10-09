@@ -36,6 +36,8 @@ run_all_tests:
 	rm db/database_test.sqlite
 	pytest tests/test_efecto_lanzallamas.py
 	rm db/database_test.sqlite
+	pytest tests/test_efecto_infeccion.py
+	rm db/database_test.sqlite
 	pytest tests/test_finalizar_partida.py
 	rm db/database_test.sqlite
 	pytest tests/test_cartas_accion.py

@@ -35,6 +35,7 @@ async def obtener_jugador(id: int) -> JugadorResponse:
                                           isHost = jugador.isHost,
                                           posicion = jugador.Posicion,
                                           isAlive = jugador.isAlive,
+                                          rol = jugador.Rol,
                                           cartas = lista_cartas)
                                           
         else:

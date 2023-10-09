@@ -14,6 +14,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
         carta = Carta.get(id=id_carta)
         if carta and carta.jugador:
             if carta.partida.turnoActual != carta.jugador.Posicion : raise HTTPException(status_code=400, detail="No es el turno del jugador que tiene esta carta") 
+            jugador = carta.jugador
             carta.jugador.cartas.remove(carta)
             carta.descartada=True
 
@@ -25,6 +26,8 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                     efectos_cartas.efecto_lanzallamas(id_objetivo)
                 case "Vigila tus espaldas":
                     efectos_cartas.vigila_tus_espaldas(partida)
+                case "Infectado":
+                    efectos_cartas.efecto_infeccion(id_objetivo, jugador.id)
                 
             if partida.sentido:
                 for i in range(1, len(partida.jugadores)):
