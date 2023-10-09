@@ -43,4 +43,6 @@ run_all_tests:
 	make run_obtener_partida_test
 	make run_robar_carta_test
 	make run_obtener_jugador_test
-	make run_cartas_accion_test
+	pytest tests/test_ws.py
+	rm db/database_test.sqlite
+

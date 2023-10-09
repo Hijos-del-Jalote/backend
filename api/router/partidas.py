@@ -1,15 +1,13 @@
-from typing import Optional
 from fastapi import APIRouter, HTTPException, status
 from pony.orm import *
 from db.models import *
-import json 
-from pydantic import BaseModel
 from db.mazo_session import *
 from db.cartas_session import *
-from db.session import *
-from .schemas import PartidaResponse
-from .schemas import PartidaIn, PartidaOut, EstadoPartida
+from db.partidas_session import *
+from .schemas import *
 from random import randint
+from api.ws import manager
+from fastapi.websockets import *
 
 
 partidas_router = APIRouter()
@@ -34,7 +32,8 @@ async def unir_jugador(idPartida:int, idJugador:int):
                 raise HTTPException(status_code=400, detail="Jugador already in Partida")
         else:
             raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
-
+    
+    await manager.handle_data("unir", idPartida)
 
 
 
@@ -71,18 +70,7 @@ async def obtener_partida(id: int) -> PartidaResponse:
         partida = Partida.get(id=id)
 
         if partida:
-            jugadores_list = sorted([{"id": j.id,
-                                      "nombre": j.nombre,
-                                      "posicion": j.Posicion,
-                                      "isAlive": j.isAlive} for j in partida.jugadores], key=lambda j: j['id'])
-
-            partidaResp = PartidaResponse(nombre=partida.nombre,
-                                          maxJugadores=partida.maxJug,
-                                          minJugadores=partida.minJug,
-                                          iniciada=partida.iniciada,
-                                          turnoActual=partida.turnoActual,
-                                          sentido=partida.sentido,
-                                          jugadores=jugadores_list)
+            partidaResp = get_partida(id)
                                           
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -137,3 +125,16 @@ async def finalizar_partida(id: int) -> EstadoPartida:
     else:
         return EstadoPartida(finalizada=False, idGanador=-1)
 
+@partidas_router.websocket("/{idPartida}/ws")
+async def websocket_endpoint(websocket: WebSocket, idPartida: int):
+    await manager.connect(websocket, idPartida)
+    
+    try:
+        while True:
+            data = await websocket.receive_text()
+            print(f'data::::::::::::::::{data}')
+            await manager.handle_data(data,idPartida)
+            pass
+
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, idPartida)
