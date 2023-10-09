@@ -34,6 +34,9 @@ class ConnectionManager:
             case "unir": # or cualquier otro que requiera este json.
                 dumper: PartidaResponse = get_partida(idPartida)
                 await self.broadcast(dumper.model_dump_json(), idPartida)
+            case "finalizar":
+                dumper: FinPartidaResponse = fin_partida_respond(idPartida)
+                await self.broadcast(dumper.model_dump_json(), idPartida)
             case _:
                 print("El resto")
 

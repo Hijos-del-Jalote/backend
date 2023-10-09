@@ -20,3 +20,29 @@ def get_partida(id: int) -> PartidaResponse:
                                       jugadores=jugadores_list)
 
     return partidaResp
+
+def fin_partida_respond(idPartida: int) -> FinPartidaResponse:
+    with db_session:
+        jugadores = partida.jugadores
+        humanos = []
+        cosos = []
+        isLacosaAlive = false
+        for jugador in jugadores:
+            if jugador.Rol == "humano":
+                humanos.append(jugador.id)
+            if jugador.Rol == "lacosa" and jugador.isAlive:
+                isLacosaAlive = True
+            if jugador.Rol == "lacosa" or jugador.Rol == "infectado":
+                cosos.append(jugador.id)
+
+    if len(humanos) == 0 and isLacosaAlive: # gana la cosa y su team
+        return FinPartidaResponse(finalizada=True,
+                                  isHumanoTeamWinner=False,
+                                  winners=sorted(cosos))
+    else:
+        if (not isLacosaAlive) and len(humanos) > 0: # ganan los humanos
+            return FinPartidaResponse(finalizada=True,
+                                      isHumanoTeamWinner=False,
+                                      winners=sorted(humanos))
+        else: # no termino la partida
+            return FinPartidaResponse(finalizada=False)
