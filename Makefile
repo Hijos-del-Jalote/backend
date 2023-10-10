@@ -41,7 +41,12 @@ run_all_tests:
 	pytest tests/test_efecto_vigila_tus_espaldas.py
 	rm db/database_test.sqlite
 	pytest tests/test_efecto_cambio_de_lugar.py
+  rm db/database_test.sqlite
+	pytest tests/test_cartas_accion.py
 	rm db/database_test.sqlite
 	make run_obtener_partida_test
 	make run_robar_carta_test
 	make run_obtener_jugador_test
+	pytest tests/test_ws.py
+	rm db/database_test.sqlite
+
