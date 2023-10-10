@@ -8,7 +8,7 @@ from db.models import *
 client = TestClient(app)
 
 
-def test_efecto_vigila_tus_espaldas():
+def test_efecto_cambio_de_lugar():
     with db_session(optimistic=False):
         l = False
         #Crear template de una carta vigila tus espaldas si no existe
