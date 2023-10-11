@@ -30,7 +30,21 @@ def cambio_de_lugar(jugador1, jugador2):
                 p1 = jugador1.Posicion
                 jugador1.Posicion = jugador2.Posicion
                 jugador2.Posicion = p1
+                db.commit()
             else:
                 raise HTTPException(status_code=400, detail="Los jugadores no son adyacentes | El jugador objetivo esta en cuarentena | Hay una puerta trancada de por medio")
+        else:
+            raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")
+
+def mas_vale_que_corras(jugador1, jugador2):
+    with db_session:
+        if jugador1 and jugador2:
+            if not jugador2.cuarentena:
+                p1 = jugador1.Posicion
+                jugador1.Posicion = jugador2.Posicion
+                jugador2.Posicion = p1
+                db.commit()
+            else:
+                raise HTTPException(status_code=400, detail="El jugador objetivo esta en cuarentena")
         else:
             raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")

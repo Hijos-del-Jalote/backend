@@ -25,7 +25,9 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                     efectos_cartas.vigila_tus_espaldas(partida)
                 case "Cambio de lugar":
                     efectos_cartas.cambio_de_lugar(carta.jugador, Jugador[id_objetivo])
-                
+                case "Mas vale que corras":
+                    efectos_cartas.mas_vale_que_corras(carta.jugador, Jugador[id_objetivo])
+                    
             carta.jugador.cartas.remove(carta)
             carta.descartada=True
                 
