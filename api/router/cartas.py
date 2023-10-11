@@ -25,7 +25,9 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                     efectos_cartas.efecto_lanzallamas(id_objetivo)
                 case "Vigila tus espaldas":
                     efectos_cartas.vigila_tus_espaldas(partida)
-                
+                case "Puerta trancada":
+                    efectos_cartas.puerta_trancada(carta.jugador, Jugadores[id_objetivo])
+                    
             if partida.sentido:
                 for i in range(1, len(partida.jugadores)):
                     pos = (partida.turnoActual+i) % len(partida.jugadores)
