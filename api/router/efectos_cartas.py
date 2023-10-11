@@ -24,7 +24,7 @@ def vigila_tus_espaldas(partida):
 def efecto_infeccion(id_objetivo, id_jugador):
     with db_session:
         if (id_objetivo != None) & (Jugador.exists(id=id_objetivo)):
-            if (Jugador.get(id=id_jugador).Rol == "lacosa"):
+            if (Jugador.get(id=id_jugador).Rol == "lacosa"): # queda checkeo aca por ahora, desp va en intercambio
                 objetivo = Jugador[id_objetivo]
                 objetivo.Rol = "infectado"
                 db.commit()

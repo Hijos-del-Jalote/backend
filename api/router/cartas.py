@@ -26,8 +26,6 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                     efectos_cartas.efecto_lanzallamas(id_objetivo)
                 case "Vigila tus espaldas":
                     efectos_cartas.vigila_tus_espaldas(partida)
-                case "Infectado":
-                    efectos_cartas.efecto_infeccion(id_objetivo, jugador.id)
                 
             if partida.sentido:
                 for i in range(1, len(partida.jugadores)):
