@@ -30,6 +30,7 @@ def cambio_de_lugar(jugador1, jugador2):
                 p1 = jugador1.Posicion
                 jugador1.Posicion = jugador2.Posicion
                 jugador2.Posicion = p1
+                db.commit()
             else:
                 raise HTTPException(status_code=400, detail="Los jugadores no son adyacentes | El jugador objetivo esta en cuarentena | Hay una puerta trancada de por medio")
         else:
