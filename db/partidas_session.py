@@ -36,11 +36,15 @@ def fin_partida_respond(idPartida: int) -> FinPartidaResponse:
                 cosos.append(jugador.id)
 
     if len(humanos) == 0 and isLacosaAlive: # gana la cosa y su team
+        partida.finalizada = True
+        db.commit()
         return FinPartidaResponse(finalizada=True,
                                   isHumanoTeamWinner=False,
                                   winners=sorted(cosos))
     else:
         if (not isLacosaAlive) and len(humanos) > 0: # ganan los humanos
+            partida.finalizada = True
+            db.commit()
             return FinPartidaResponse(finalizada=True,
                                       isHumanoTeamWinner=False,
                                       winners=sorted(humanos))
