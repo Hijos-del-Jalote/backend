@@ -38,15 +38,15 @@ def fin_partida_respond(idPartida: int) -> FinPartidaResponse:
     if len(humanos) == 0 and isLacosaAlive: # gana la cosa y su team
         partida.finalizada = True
         db.commit()
-        return FinPartidaResponse(finalizada=True,
-                                  isHumanoTeamWinner=False,
+        return FinPartidaResponse(isHumanoTeamWinner=False,
                                   winners=sorted(cosos))
     else:
         if (not isLacosaAlive) and len(humanos) > 0: # ganan los humanos
             partida.finalizada = True
             db.commit()
-            return FinPartidaResponse(finalizada=True,
+            return FinPartidaResponse(
                                       isHumanoTeamWinner=False,
                                       winners=sorted(humanos))
-        else: # no termino la partida
-            return FinPartidaResponse(finalizada=False)
+        else:
+            raise Exception
+

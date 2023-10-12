@@ -1,70 +1,56 @@
-from fastapi.testclient import TestClient
-from fastapi import status
-from pony.orm import db_session
+import pytest
+import httpx
+from db.partidas_session import get_partida
 from api.api import app
-from api.router.partidas import PartidaIn, PartidaOut
-
-from db.models import Partida, db, Jugador
-
+from fastapi.testclient import TestClient
+from pony.orm import db_session, commit
+from db.models import Jugador,Partida
 from tests.test_newplayer import random_user
+from api.ws import manager
+from typing import List
 
-client = TestClient(app)
+from .test_robar_carta import vaciar_manos
 
-def test_finalizar_partida():
-    
-    jugadores = []
-    for i in range(4):
-        username = random_user()
-        response = client.post(f'jugadores?nombre={username}')
+async def test_finalizar_partida():
+    client1 = TestClient(app)
+    client2 = TestClient(app)
+
+    with client1.websocket_connect("ws://localhost:8000/partidas/3/ws") as websocket:
+        response = client2.post(f'jugadores?nombre={"J" + str(0)}')
+        hostid = response.json()["id"]
+        client2.post(f'partidas/?nombrePartida=partida&idHost={hostid}')
         with db_session:
-            jugadores.append(Jugador.get(id = response.json()["id"]))
-    
-    partida = random_user()
-    host = jugadores[0]
-
-    # creo partida
-    response = client.post(f'partidas/?nombrePartida={partida}&idHost={host.id}') 
-
-    with db_session:
-        partida = Partida.get(id = response.json()["idPartida"])
-
-    # uno jugadores a partida
-    for i in range(1,4):
-        client.post(f"partidas/unir?idPartida={partida.id}&idJugador={jugadores[i].id}")
-    
-    # partida correcta
-    response = client.put(f"partidas/iniciar?idPartida={partida.id}")
-
-    with db_session:
-        partida = Partida.get(id = partida.id)
+            partida = Jugador.get(id=hostid).partida
         
-        # hago una simulacion de juego
-        for jugador in partida.jugadores:
-            jugador.isAlive = False
-            ultimojugador = jugador
+        # mandar un post con otro cliente:
+        for i in range(1,4):
+            response = client2.post(f'jugadores?nombre={"J" + str(i)}')
+            client2.post(f'partidas/unir?idPartida={partida.id}&idJugador={response.json()["id"]}')
+
+        response = client2.put(f'partidas/iniciar?idPartida={partida.id}')
+        # Esperar la respuesta del websocket en el cliente1:
         
-        ultimojugador.isAlive = True
-
-    # partida finalizada
-    response = client.get(f"partidas/{partida.id}/estado")
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["finalizada"] == True
-    assert response.json()["idGanador"] == ultimojugador.id
-
-    # partida no finalizada
-    with db_session:
-        partida = Partida.get(id = partida.id)
+        with db_session:
+            partida = Partida.get(id=partida.id)
+            for j in partida.jugadores:
+                if j.Rol != "lacosa":
+                    j.Rol = "infectado"
+                    ultimojugador = j
+                if j.Posicion == partida.turnoActual:
+                    jugadorActual = j
+            idcarta = list(jugadorActual.cartas)[0].id
+            # ultimojugador.Rol = "humano"
+            commit()
+            assert partida.finalizada == False
+        client2.post(f'cartas/jugar?id_carta={idcarta}')
+        assert(response.status_code == 200)
+        # por ahora este json debe ser el de finalizar de partida ya que es el unico en jugar carta de ws,
+        # desp si se agrega el de jugar carta, se cambia esto
         
-        # hago una simulacion de juego
-        for jugador in partida.jugadores:
-            jugador.isAlive = True
-
-    response = client.get(f"partidas/{partida.id}/estado")
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["finalizada"] == False
-
-    # partida no existente
-    response = client.get(f"partidas/1234/estado")
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    
+        ####### Se queda esperando aca
+        response = websocket.receive_json()
+        #######
+        assert response == {"event": "finalizar", "data": fin_partida_respond(partida.id).model_dump_json()}
+        
+        with db_session:
+            assert Partida.get(id=partida.id).finalizada == True

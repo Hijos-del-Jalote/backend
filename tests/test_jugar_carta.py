@@ -19,8 +19,6 @@ def test_jugar_carta():
             template_carta = TemplateCarta.get(nombre="Prueba")
         #Crear un jugador
         jugador = Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=True, Posicion=1)
-        
-        jugador.Rol = "lacosa" #####################################
 
         #Crear una partida con jugador host
         partida = Partida(nombre="Partida", maxJug=5, minJug=1, iniciada=True, turnoActual=0, sentido = False, jugadores={jugador})
@@ -34,11 +32,9 @@ def test_jugar_carta():
         db.commit()
         
         turno = partida.turnoActual
-        assert(partida.finalizada == False) #####################################
         #El jugador deberia jugar la carta correctamente
         response = client.post(f'cartas/jugar?id_carta={carta.id}')
         assert(response.status_code == 200)
-        assert(partida.finalizada == True) ###################################
         assert partida.turnoActual == (turno - 1) % len(partida.jugadores)
         
         #Jugar la carta nuevamente -> deberia dar error ya que la carta no pertenece a ningun jugador.

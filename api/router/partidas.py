@@ -142,7 +142,10 @@ async def websocket_endpoint(websocket: WebSocket, idPartida: int):
 async def fin_partida(idPartida: int):
     with db_session:
         if db.Partida.exists(id=idPartida):
-            await manager.handle_data("finalizar", idPartida)
+            try:
+                await manager.handle_data("finalizar", idPartida)
+            except Exception:
+                return
         else:
             raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
         

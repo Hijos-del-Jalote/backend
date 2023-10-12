@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pony.orm import db_session
 from db.models import *
+from .partidas import fin_partida
 from . import efectos_cartas
 
 
