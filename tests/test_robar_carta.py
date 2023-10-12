@@ -21,7 +21,7 @@ def mazo_is_available(mazo: Set(Carta)) -> bool:
         mazo_discarded_cant = count(mazo.select(lambda carta: carta.descartada == False))
     return mazo_cant == mazo_discarded_cant
 
-def test_robo_exitoso():
+def test_robo_exitoso(setup_db_before_test):
     with db_session:
         partida = Partida[1]
         jugador = select(j for j in partida.jugadores).first()
@@ -46,7 +46,7 @@ def test_mano_llena():
     assert response.json() == {"detail": "Mano llena!"}
 
 
-def test_mazo_vacio():
+def test_mazo_vacio(cleanup_db_after_test):
     with db_session:
         partida = Partida[1]
         jugador = select(j for j in partida.jugadores).first()

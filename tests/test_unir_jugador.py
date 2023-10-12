@@ -8,7 +8,7 @@ from api.router.partidas import *
 client = TestClient(app)
 
 
-def test_unir_jugador():
+def test_unir_jugador(cleanup_db_after_test):
 
     with db_session:
         p = db.Partida(nombre="Partida", maxJug=5, minJug=1, sentido=0, iniciada=True)
