@@ -109,6 +109,8 @@ async def iniciar_partida(idPartida: int):
                     jugador.Rol = "humano"
             jugador.Posicion = posicion
             posicion += 1
+    await manager.handle_data("iniciar", idPartida)
+    return {"detail": "Partida iniciada con exito"}
 
 
 @partidas_router.get(path="/{id}/estado", response_model=EstadoPartida, status_code=status.HTTP_200_OK)
@@ -136,10 +138,7 @@ async def websocket_endpoint(websocket: WebSocket, idPartida: int):
     
     try:
         while True:
-            data = await websocket.receive_text()
-            print(f'data::::::::::::::::{data}')
-            await manager.handle_data(data,idPartida)
-            pass
+            await websocket.receive_text()
 
     except WebSocketDisconnect:
         manager.disconnect(websocket, idPartida)
