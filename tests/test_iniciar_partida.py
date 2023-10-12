@@ -11,7 +11,7 @@ from tests.test_newplayer import random_user
 client = TestClient(app)
 
 
-def test_iniciar_partida():
+def test_iniciar_partida(cleanup_db_after_test):
     # parte parecida a test_newplayer pero necesito el idHost
 
     jugadores = []

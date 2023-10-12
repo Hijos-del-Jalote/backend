@@ -10,7 +10,7 @@ from db.cartas_session import *
 
 client = TestClient(app)
 
-def test_cartas_accion():
+def test_cartas_accion(cleanup_db_after_test):
         jugadores = []
         for j in range(4):
             username = random_user()
