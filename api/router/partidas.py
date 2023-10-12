@@ -101,7 +101,12 @@ async def iniciar_partida(idPartida: int):
         partida.turnoActual = randint(0,len(partida.jugadores)-1)
         posicion = 0
         for jugador in partida.jugadores:
-            jugador.Rol = "humano"
+            for carta in jugador.cartas:
+                if carta.template_carta.nombre == "La cosa":
+                    jugador.Rol = "lacosa"
+                    break
+                else:
+                    jugador.Rol = "humano"
             jugador.Posicion = posicion
             posicion += 1
     await manager.handle_data("iniciar", idPartida)

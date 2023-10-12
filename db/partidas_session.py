@@ -19,7 +19,7 @@ def get_partida(id: int) -> PartidaResponse:
         partida = Partida.get(id=id)
 
         jugadores_list = get_jugadores_partida(id)
-        
+              
         partidaResp = PartidaResponse(nombre=partida.nombre,
                                       maxJugadores=partida.maxJug,
                                       minJugadores=partida.minJug,
