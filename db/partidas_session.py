@@ -9,7 +9,8 @@ def get_partida(id: int) -> PartidaResponse:
         jugadores_list = sorted([{"id": j.id,
                                   "nombre": j.nombre,
                                   "posicion": j.Posicion,
-                                  "isAlive": j.isAlive} for j in partida.jugadores], key=lambda j: j['id'])
+                                  "isAlive": j.isAlive,
+                                  "rol": j.Rol} for j in partida.jugadores], key=lambda j: j['id'])
         
         partidaResp = PartidaResponse(nombre=partida.nombre,
                                       maxJugadores=partida.maxJug,

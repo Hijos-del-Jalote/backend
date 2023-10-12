@@ -14,6 +14,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
         carta = Carta.get(id=id_carta)
         if carta and carta.jugador:
             if carta.partida.turnoActual != carta.jugador.Posicion : raise HTTPException(status_code=400, detail="No es el turno del jugador que tiene esta carta") 
+            jugador = carta.jugador
             carta.jugador.cartas.remove(carta)
             carta.descartada=True
 

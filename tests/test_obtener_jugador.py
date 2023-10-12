@@ -35,6 +35,7 @@ def test_get_jugador_valido():
             'isHost': Jugador[1].isHost,
             'posicion': Jugador[1].Posicion,
             'isAlive': Jugador[1].isAlive,
+            'rol': Jugador[1].Rol,
             'cartas': lista_cartas
         }
 
