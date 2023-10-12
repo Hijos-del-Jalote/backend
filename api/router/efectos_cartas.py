@@ -21,6 +21,7 @@ def vigila_tus_espaldas(partida):
         else:
             raise HTTPException(status_code=400, detail="Partida no existente")
             
+
 def cambio_de_lugar(jugador1, jugador2):
     with db_session:
         if jugador1 and jugador2:
@@ -44,3 +45,18 @@ def cambio_de_lugar(jugador1, jugador2):
                 raise HTTPException(status_code=400, detail="Los jugadores no son adyacentes | El jugador objetivo esta en cuarentena | Hay una puerta trancada de por medio")
         else:
             raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")
+
+def efecto_infeccion(id_objetivo, id_jugador):
+    with db_session:
+        if (id_objetivo != None) & (Jugador.exists(id=id_objetivo)):
+            if (Jugador.get(id=id_jugador).Rol == "lacosa"): # queda checkeo aca por ahora, desp va en intercambio
+                objetivo = Jugador[id_objetivo]
+                objetivo.Rol = "infectado"
+                db.commit()
+            else:
+                raise HTTPException(status_code=400, detail="Jugador que juega la carta no es La cosa")
+                # por ahora asumimos que alguien que no lo es, no la va a jugar, por eso se mantiene
+                # el orden en jugar carta
+        else:
+            raise HTTPException(status_code=400, detail="Jugador objetivo No existe o No proporcionado")
+

@@ -54,11 +54,16 @@ def test_iniciar_partida():
 
     # verifico que tengan posicion y rol por defecto
     posiciones = set()
+    cant_cosas = 0
     for jugador in jugadores:
         assert jugador.Posicion not in posiciones
         posiciones.add(jugador.Posicion)
-        assert jugador.Rol == "humano"
+        assert jugador.Rol == "humano" or jugador.Rol == "lacosa"
+        if jugador.Rol == "lacosa":
+            cant_cosas += 1
 
+    assert cant_cosas == 1
+    
     # partida ya iniciada
     response = client.put(f"partidas/iniciar?idPartida={partida.id}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
