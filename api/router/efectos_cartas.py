@@ -49,9 +49,9 @@ def cambio_de_lugar(jugador1, jugador2):
 def efecto_infeccion(id_objetivo, id_jugador):
     with db_session:
         if (id_objetivo != None) & (Jugador.exists(id=id_objetivo)):
-            if (Jugador.get(id=id_jugador).Rol == "lacosa"): # queda checkeo aca por ahora, desp va en intercambio
+            if (Jugador.get(id=id_jugador).Rol == "La cosa"): # queda checkeo aca por ahora, desp va en intercambio
                 objetivo = Jugador[id_objetivo]
-                objetivo.Rol = "infectado"
+                objetivo.Rol = "Infectado"
                 db.commit()
             else:
                 raise HTTPException(status_code=400, detail="Jugador que juega la carta no es La cosa")

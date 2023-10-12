@@ -6,16 +6,16 @@ from db.settings import DATABASE_FILENAME
 db = Database()
 
 class Rol(str, Enum):
-    lacosa = "lacosa"
-    infectado = "infectado"
-    humano = "humano"
+    lacosa = "La cosa"
+    infectado = "Infectado"
+    humano = "Humano"
 
 class Tipo_Carta(str, Enum):
-    panico = "panico"
-    accion = "accion"
-    defensa = "defensa"
-    obstaculo = "obstaculo"
-    contagio = "contagio"
+    panico = "Panico"
+    accion = "Accion"
+    defensa = "Defensa"
+    obstaculo = "Obstaculo"
+    contagio = "Contagio"
 
 class Jugador(db.Entity):
     id = PrimaryKey(int, auto=True)

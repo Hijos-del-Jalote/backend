@@ -27,6 +27,6 @@ run_ws_unir_test:
 	unset ENVIRONMENT
 
 run_all_tests:
-	ENVIROMENT=TEST
+	ENVIRONMENT=TEST
 	pytest
 	rm db/database_test.sqlite

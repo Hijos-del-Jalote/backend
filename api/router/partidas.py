@@ -103,10 +103,10 @@ async def iniciar_partida(idPartida: int):
         for jugador in partida.jugadores:
             for carta in jugador.cartas:
                 if carta.template_carta.nombre == "La cosa":
-                    jugador.Rol = "lacosa"
+                    jugador.Rol = "La cosa"
                     break
                 else:
-                    jugador.Rol = "humano"
+                    jugador.Rol = "Humano"
             jugador.Posicion = posicion
             posicion += 1
     await manager.handle_data("iniciar", idPartida)

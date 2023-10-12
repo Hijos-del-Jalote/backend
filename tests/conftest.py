@@ -2,7 +2,6 @@ import os
 import pytest
 from .populate_db import populate_db
 from db.models import *
-import time
 
 # Fixture para configurar la base de datos antes de ciertas pruebas
 @pytest.fixture(scope="function")
