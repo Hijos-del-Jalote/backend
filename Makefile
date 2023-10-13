@@ -19,6 +19,13 @@ run_obtener_jugador_test:
 	rm db/database_test.sqlite
 	unset ENVIRONMENT
 
+run_ws_unir_test:
+	ENVIRONMENT=test
+	python3 tests/populate_db.py
+	py.test -s tests/test_ws_unir.py
+	rm db/database_test.sqlite
+	unset ENVIRONMENT
+
 run_all_tests:
 	pytest tests/test_newplayer.py
 	rm db/database_test.sqlite
@@ -36,13 +43,22 @@ run_all_tests:
 	rm db/database_test.sqlite
 	pytest tests/test_efecto_lanzallamas.py
 	rm db/database_test.sqlite
+	pytest tests/test_efecto_infeccion.py
+	rm db/database_test.sqlite
 	pytest tests/test_finalizar_partida.py
 	rm db/database_test.sqlite
+	pytest tests/test_efecto_vigila_tus_espaldas.py
+	rm db/database_test.sqlite
+	pytest tests/test_efecto_cambio_de_lugar.py
+  rm db/database_test.sqlite
 	pytest tests/test_cartas_accion.py
+	rm db/database_test.sqlite
+	pytest tests/test_cartas_defensa.py
 	rm db/database_test.sqlite
 	make run_obtener_partida_test
 	make run_robar_carta_test
 	make run_obtener_jugador_test
 	pytest tests/test_ws.py
 	rm db/database_test.sqlite
+	make run_ws_unir_test
 

@@ -12,7 +12,6 @@ def crear_template_carta( nombre ,descripcion , tipo):
 @db_session
 def crear_templates_cartas(): 
     if TemplateCarta.select().count() == 0:
-        crear_template_carta("Carta Vacia", "Esta Carta No Hace Nada",Tipo_Carta.accion)
         crear_template_carta("La cosa", "Te convertiste en la cosa pa",Tipo_Carta.contagio)
         crear_template_carta("Lanzallamas", "matar a un jugador",Tipo_Carta.accion)
         crear_template_carta("Vigila tus espaldas", "Invierte el orden de la partida",Tipo_Carta.accion)
@@ -25,6 +24,26 @@ def crear_templates_cartas():
         crear_template_carta("Hacha", "retira una carta 'puerta atrancada' o 'cuarentena'sobre ti o un jugador adyacente", Tipo_Carta.accion)
         crear_template_carta("Determinacion", "roba 3 cartas 'Alejate',elige 1 para quedartela y descarta las demas , luego juega o descarta una carta", Tipo_Carta.accion)
         crear_template_carta("Infectado", "Te convertiste en un infectado",Tipo_Carta.contagio)
+        crear_template_carta("Aterrador", "Niegate a un ofrecimiento de cambio de carta , mira la carta que te has negado a recibir y roba una carta 'alejate", Tipo_Carta.defensa)
+        crear_template_carta("Aqui estoy bien", "cancela una carta 'cambio de lugar' o 'mas vale que corras y roba una carta 'alejate", Tipo_Carta.defensa)
+        crear_template_carta("No, gracias", "Niegate a un ofrecimiento de cambio de carta y roba una carta 'alejate", Tipo_Carta.defensa)
+        crear_template_carta("Fallaste", "el siguiente jugador despues de ti realiza el intercambio de cartas en tu lugar , no queda infectado si recibe una carta infectado roba una carta 'alejate'" , Tipo_Carta.defensa)
+        crear_template_carta("Nada de barbacoas", "cancela una carta 'lanzallamas' que te tenga como objetivo y roba una carta 'alejate", Tipo_Carta.defensa)
+        crear_template_carta("Puerta atrancada", "Coloca esta carta entre un jugador adyacente y tu , no se permiten acciones entre este jugador y tu", Tipo_Carta.obstaculo)
+        crear_template_carta("Cuarentena", "C", Tipo_Carta.obstaculo)
+        crear_template_carta("Revelaciones", "o", Tipo_Carta.panico)
+        crear_template_carta("Sal de aqui", "o", Tipo_Carta.panico)
+        crear_template_carta("Olvidadizo", "o", Tipo_Carta.panico)
+        crear_template_carta("Cuerdas podridas", "o", Tipo_Carta.panico)
+        crear_template_carta("Uno, dos", "o", Tipo_Carta.panico)
+        crear_template_carta("Tres, cuatro", "o", Tipo_Carta.panico)
+        crear_template_carta("Es aqui la fiesta?", "o", Tipo_Carta.panico)
+        crear_template_carta("Que quede entre nosotros", "o", Tipo_Carta.panico)
+        crear_template_carta("Vuelta y vuelta", "o", Tipo_Carta.panico)
+        crear_template_carta("No podemos ser amigos?", "o", Tipo_Carta.panico)
+        crear_template_carta("Cita a ciegas", "o", Tipo_Carta.panico)
+        crear_template_carta("Ups", "o", Tipo_Carta.panico)
+        
     return 0
 
 

@@ -44,7 +44,7 @@ def load_partidas():
 def load_templates():
     with db_session:
         if count(TemplateCarta.select()) == 0:
-            carta_vacia = TemplateCarta(nombre="Carta vacía",
+            carta_vacia = TemplateCarta(nombre="Carta Vacia",
                                         descripcion="Esto no hace nada",
                                         tipo=Tipo_Carta.accion)
 
@@ -52,7 +52,7 @@ def load_cartas():
     # (id,descartada, template, partida)
     cartas = []
     for i in range (1,10):
-        cartas.append((i,False,"Carta vacía",Partida[1]))
+        cartas.append((i,False,"Carta Vacia",Partida[1]))
 
     with db_session:
         if count(Carta.select()) == 0:
