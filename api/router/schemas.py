@@ -28,9 +28,9 @@ class JugadorResponse(BaseModel):
     isHost: Optional[bool]
     posicion: Optional[int]
     isAlive: Optional[bool]
-    rol: str
     blockIzq: bool
     blockDer: bool
+    rol: Optional[str]
     cartas: Optional[List[Dict[str,Union[str,int]]]]
 
 

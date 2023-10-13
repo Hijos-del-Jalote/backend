@@ -34,7 +34,10 @@ def puerta_trancada(jugador1, jugador2):
             #Si lo es, entonces aplico bloqueos.
             #Si no, pongo una de las flags en False para saber que por ese lado no puede ser adyacente.
              
-            b_sig, b_ant = True, True
+            #flags para saber si la busqueda de izq o derecha es valida (si encontramos un jugador vivo pero que no es jugador2 entonces se vuelve no valid)
+            der_valido, izq_valido = True, True
+            #flag para saber si encontramos.
+            encontrado = False
             for i in range(1, len(partida.jugadores)):
                 
                 pos_sig = (partida.turnoActual+i) % cant
@@ -43,24 +46,25 @@ def puerta_trancada(jugador1, jugador2):
                 pos_ant = (partida.turnoActual-i) % cant
                 jug_ant = Jugador.get(Posicion=pos_ant, partida=partida)
                 
-                if jug_sig.isAlive and b_sig:
-                    if jug_sig.Posicion != jugador2.Posicion:
-                        b_sig = False
+                if jug_sig.isAlive and der_valido:
+                    if jug_sig.Posicion != jugador2.Posicion and (not encontrado):
+                        der_valido = False
                     else:
                         jugador1.blockDer = True
                         jugador2.blockIzq = True         
                         db.commit()
+                        encontrado = True
                         
-                if jug_ant.isAlive and b_ant:
-                    if jug_ant.Posicion != jugador2.Posicion:
-                        b_ant = False
+                if jug_ant.isAlive and izq_valido:
+                    if jug_ant.Posicion != jugador2.Posicion and (not encontrado):
+                        izq_valido = False
                     else:
                         jugador1.blockIzq = True
                         jugador2.blockDer = True
                         db.commit()
+                        encontrado = True
                         
-                        
-                if (not b_sig) and (not b_ant):
+                if (not der_valido) and (not izq_valido):
                     raise HTTPException(status_code=400, detail="Jugadores no son adyacentes")                
         else:
             raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")
@@ -93,9 +97,9 @@ def cambio_de_lugar(jugador1, jugador2):
 def efecto_infeccion(id_objetivo, id_jugador):
     with db_session:
         if (id_objetivo != None) & (Jugador.exists(id=id_objetivo)):
-            if (Jugador.get(id=id_jugador).Rol == "lacosa"): # queda checkeo aca por ahora, desp va en intercambio
+            if (Jugador.get(id=id_jugador).Rol == "La cosa"): # queda checkeo aca por ahora, desp va en intercambio
                 objetivo = Jugador[id_objetivo]
-                objetivo.Rol = "infectado"
+                objetivo.Rol = "Infectado"
                 db.commit()
             else:
                 raise HTTPException(status_code=400, detail="Jugador que juega la carta no es La cosa")

@@ -11,7 +11,7 @@ from tests.test_newplayer import random_user
 client = TestClient(app)
 
 
-def test_crear_partida():
+def test_crear_partida(cleanup_db_after_test):
     # parte parecida a test_newplayer pero necesito el idHost
     username = random_user()
     response = client.post(f'jugadores?nombre={username}')

@@ -11,7 +11,7 @@ from tests.test_newplayer import random_user
 client = TestClient(app)
 
 
-def test_iniciar_partida():
+def test_iniciar_partida(cleanup_db_after_test):
     # parte parecida a test_newplayer pero necesito el idHost
 
     jugadores = []
@@ -58,8 +58,8 @@ def test_iniciar_partida():
     for jugador in jugadores:
         assert jugador.Posicion not in posiciones
         posiciones.add(jugador.Posicion)
-        assert jugador.Rol == "humano" or jugador.Rol == "lacosa"
-        if jugador.Rol == "lacosa":
+        assert jugador.Rol == "Humano" or jugador.Rol == "La cosa"
+        if jugador.Rol == "La cosa":
             cant_cosas += 1
 
     assert cant_cosas == 1

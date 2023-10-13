@@ -33,7 +33,7 @@ def cant_cartas_por_partida(partida):
         cartas = 108
     return cartas
 
-def test_crear_mazo():
+def test_crear_mazo(cleanup_db_after_test):
     for i in range (4,13):
         jugadores = []
         for j in range(i):

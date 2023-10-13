@@ -23,7 +23,7 @@ def test_valid_user():
         player = Jugador.get(id = response.json()["id"])
         assert player.nombre == username
 
-def test_invalid_user():
+def test_invalid_user(cleanup_db_after_test):
     response = client.post('jugadores?nombre=')
     assert response.status_code == 400
     

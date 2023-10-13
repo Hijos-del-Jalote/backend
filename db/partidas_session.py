@@ -10,7 +10,8 @@ def get_jugadores_partida(idPartida: int):
         jugadores_list = sorted([{"id": j.id,
                                   "nombre": j.nombre,
                                   "posicion": j.Posicion,
-                                  "isAlive": j.isAlive} for j in partida.jugadores], key=lambda j: j['id'])
+                                  "isAlive": j.isAlive,
+                                  "rol": j.Rol} for j in partida.jugadores], key=lambda j: j['id'])
     return jugadores_list
 
 @db_session

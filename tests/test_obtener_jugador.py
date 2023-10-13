@@ -17,7 +17,7 @@ def cargar_mano(jugador: Jugador):
                 break
 
 
-def test_get_jugador_valido():
+def test_get_jugador_valido(setup_db_before_test):
     with db_session:
         cargar_mano(Jugador[1])
 
@@ -43,6 +43,6 @@ def test_get_jugador_valido():
     assert response.json() == expected_response
 
 
-def test_get_partida_no_valido():
+def test_get_partida_no_valido(cleanup_db_after_test):
     response = client.get('jugador/1234')
     assert response.status_code == status.HTTP_404_NOT_FOUND

@@ -26,7 +26,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                 case "Cambio de lugar":
                     efectos_cartas.cambio_de_lugar(carta.jugador, Jugador[id_objetivo])
                 case "Puerta trancada":
-                    efectos_cartas.puerta_trancada(carta.jugador, Jugadores[id_objetivo])
+                    efectos_cartas.puerta_trancada(carta.jugador, Jugador[id_objetivo])
                     
             carta.jugador.cartas.remove(carta)
             carta.descartada=True

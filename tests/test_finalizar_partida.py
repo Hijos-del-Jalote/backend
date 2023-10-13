@@ -10,7 +10,7 @@ from tests.test_newplayer import random_user
 
 client = TestClient(app)
 
-def test_finalizar_partida():
+def test_finalizar_partida(cleanup_db_after_test):
     
     jugadores = []
     for i in range(4):

@@ -8,7 +8,7 @@ from db.models import *
 client = TestClient(app)
 
 
-def test_jugar_carta():
+def test_jugar_carta(cleanup_db_after_test):
     with db_session:
         l = False
         #Crear template de una carta

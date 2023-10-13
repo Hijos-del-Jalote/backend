@@ -7,9 +7,10 @@ from pony.orm import db_session
 from db.models import Jugador,Partida
 from tests.test_newplayer import random_user
 from api.ws import manager
+from .conftest import *
 
 
-async def test_unir_jugador_ws():
+async def test_unir_jugador_ws(setup_db_before_test):
     client1 = TestClient(app)
     client2 = TestClient(app)
 
@@ -27,7 +28,7 @@ async def test_unir_jugador_ws():
 
         assert response == {"event": "unir", "data": get_partida(2).model_dump_json()}
 
-async def test_iniciar_partida_ws():
+async def test_iniciar_partida_ws(cleanup_db_after_test):
     client1 = TestClient(app)
     client2 = TestClient(app)
     
