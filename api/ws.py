@@ -3,7 +3,7 @@ from typing import List, Dict
 from .router.schemas import *
 from db.models import *
 from db.partidas_session import get_partida
-from db.jugadores_session import get_abandonar_data
+from db.jugadores_session import get_abandonarlobby_data
 
 class ConnectionManager:
     def __init__(self):
@@ -39,8 +39,8 @@ class ConnectionManager:
             case "iniciar":
                 data = build_dict("iniciar","null")
                 await self.broadcast(data, idPartida)
-            case "abandonar":
-                data = build_dict("abandonar",get_abandonar_data(idJugador, idPartida))
+            case "abandonar lobby":
+                data = build_dict("abandonar lobby",get_abandonarlobby_data(idJugador, idPartida))
                 await self.broadcast(data,idPartida)
             case _:
                 print("El resto")

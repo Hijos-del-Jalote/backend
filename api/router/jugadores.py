@@ -51,7 +51,7 @@ async def carta_robar(id: int):
         robar_carta(id)
     return {"detail": "Robo exitoso!"}
 
-@jugadores_router.put(path="/{id}/abandonarl")
+@jugadores_router.put(path="/{id}/abandonar_lobby")
 async def abandonar_lobby(id: int):
     with db_session:
         jugador: Jugador = Jugador.get(id=id)
@@ -68,7 +68,7 @@ async def abandonar_lobby(id: int):
             partida.jugadores.remove(jugador)
             commit()
             
-            await manager.handle_data("abandonar",partida.id, jugador.id)
+            await manager.handle_data("abandonar lobby",partida.id, jugador.id)
             
             if isHost:
                partida.delete()

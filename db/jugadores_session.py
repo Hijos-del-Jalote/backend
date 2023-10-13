@@ -2,7 +2,7 @@ from .models import Jugador, Partida
 from pony.orm import db_session
 from .partidas_session import get_jugadores_partida
 
-def get_abandonar_data(idJugador: int, idPartida: int):
+def get_abandonarlobby_data(idJugador: int, idPartida: int):
     with db_session:
         jugador = Jugador.get(id=idJugador)
         isHost = jugador.isHost
