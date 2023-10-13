@@ -33,7 +33,7 @@ def test_efecto_puerta_trancada(cleanup_db_after_test):
         response_jugador1 = client.get(f'jugadores/{jugador1.id}')
         response_jugador2 = client.get(f'jugadores/{jugador2.id}')
         #Me fijo que se hayan hecho los bloqueos
-        assert((response_jugador1.json()["blockDer"]  == True) & (response_jugador1.json()["blockIzq"]  == True) & (response_jugador2.json()["blockDer"]  == True) & (response_jugador2.json()["blockIzq"]  == True) )
+        assert((response_jugador1.json()["blockDer"]  == True) & (response_jugador1.json()["blockIzq"]  == True) & (response_jugador2.json()["blockDer"]  == True) & (response_jugador2.json()["blockIzq"]  == True))
         
         #Pruebo con 1 jugador más
         jugador3 = Jugador(nombre="Nico", isHost=False, isAlive=True, blockIzq=False, blockDer=False, Posicion=2, partida = partida)
@@ -41,6 +41,8 @@ def test_efecto_puerta_trancada(cleanup_db_after_test):
         #reseteo blockeos
         jugador1.blockDer = False
         jugador1.blockIzq = False
+        jugador2.blockDer = False
+        jugador2.blockIzq = False
         partida.turnoActual = 0
         db.commit()       
         #Jugar carta
@@ -48,9 +50,10 @@ def test_efecto_puerta_trancada(cleanup_db_after_test):
         assert(response.status_code == 200)
         #Traigo los jugadores.
         response_jugador1 = client.get(f'jugadores/{jugador1.id}')
+        response_jugador2 = client.get(f'jugadores/{jugador2.id}')
         response_jugador3 = client.get(f'jugadores/{jugador3.id}')
         #Me fijo que se hayan hecho los bloqueos
-        assert((response_jugador1.json()["blockDer"]  == False) & (response_jugador1.json()["blockIzq"]  == True) & (response_jugador3.json()["blockDer"]  == True) & (response_jugador3.json()["blockIzq"]  == False)) 
+        assert((response_jugador1.json()["blockDer"]  == False) & (response_jugador1.json()["blockIzq"]  == True) & (response_jugador2.json()["blockDer"]  == False) & (response_jugador2.json()["blockIzq"]  == False) & (response_jugador3.json()["blockDer"]  == True) & (response_jugador3.json()["blockIzq"]  == False)) 
         if l:
             template_carta.delete()
         jugador1.delete()

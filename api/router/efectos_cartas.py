@@ -47,16 +47,15 @@ def puerta_trancada(jugador1, jugador2):
                 jug_ant = Jugador.get(Posicion=pos_ant, partida=partida)
                 
                 if jug_sig.isAlive and der_valido:
-                    if jug_sig.Posicion != jugador2.Posicion and (not encontrado):
+                    if jug_sig.Posicion != jugador2.Posicion:
                         der_valido = False
                     else:
                         jugador1.blockDer = True
                         jugador2.blockIzq = True         
                         db.commit()
                         encontrado = True
-                        
                 if jug_ant.isAlive and izq_valido:
-                    if jug_ant.Posicion != jugador2.Posicion and (not encontrado):
+                    if jug_ant.Posicion != jugador2.Posicion:
                         izq_valido = False
                     else:
                         jugador1.blockIzq = True
@@ -64,7 +63,7 @@ def puerta_trancada(jugador1, jugador2):
                         db.commit()
                         encontrado = True
                         
-                if (not der_valido) and (not izq_valido):
+                if (not encontrado) and (not der_valido) and (not izq_valido):
                     raise HTTPException(status_code=400, detail="Jugadores no son adyacentes")                
         else:
             raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")
