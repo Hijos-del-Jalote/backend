@@ -4,6 +4,11 @@ from db.models import *
 from tests.test_newplayer import random_user
 import random
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #  
+# Si va a usar este código agregue sus propios jugadores y partidas, no toque nada de lo que ya está  #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+
 def load_jugadores():
     #(id,nombre,isHost,partida)
     jugadores = [

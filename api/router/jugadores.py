@@ -1,8 +1,10 @@
 from fastapi import APIRouter, status, HTTPException
-from pony.orm import db_session
-from db.models import Jugador
+from pony.orm import db_session, commit
+from db.models import Jugador, Partida
 from db.cartas_session import robar_carta
 from .schemas import PlayerResponse, JugadorResponse
+from ..ws import manager
+
 
 jugadores_router = APIRouter()
 
@@ -49,3 +51,31 @@ async def carta_robar(id: int):
         robar_carta(id)
     return {"detail": "Robo exitoso!"}
 
+@jugadores_router.put(path="/{id}/abandonar_lobby", status_code=status.HTTP_200_OK)
+async def abandonar_lobby(id: int):
+    with db_session:
+        jugador: Jugador = Jugador.get(id=id)
+        
+        if not jugador:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="El jugador no existe")
+        if not jugador.partida:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="El jugador no se encuentra en una partida")
+        if jugador.partida.iniciada:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="No puede abandonar el lobby de una partida iniciada")
+        else: 
+            isHost = jugador.isHost
+            partida = jugador.partida
+            partida.jugadores.remove(jugador)
+            commit()
+            
+            await manager.handle_data("abandonar lobby",partida.id, jugador.id)
+            
+            if isHost:
+               partida.delete()
+    
+    
+
+    return {"detail": "Partida abandonada con éxito"}
