@@ -8,6 +8,7 @@ from .schemas import *
 from random import randint
 from api.ws import manager
 from fastapi.websockets import *
+from typing import List
 
 
 partidas_router = APIRouter()
@@ -140,12 +141,44 @@ async def websocket_endpoint(websocket: WebSocket, idPartida: int):
         manager.disconnect(websocket, idPartida)
 
 async def fin_partida(idPartida: int):
+
     with db_session:
         if db.Partida.exists(id=idPartida):
-            try:
-                await manager.handle_data("finalizar", idPartida)
-            except Exception:
-                return
+            
+            
+            winners = get_winners(idPartida)
+            partida = Partida.get(id=idPartida)
+            if len(winners) != 0:
+                partida.finalizada = True
+                db.commit()
+                print(winners[0])
+                await manager.handle_data("finalizar", idPartida, winners[0], winners[1])
+            
         else:
             raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
+
+def get_winners(idPartida: int) -> tuple:
+    with db_session:
+        jugadores = Partida.get(id=idPartida).jugadores
+        humanos = []
+        cosos = []
+        isLacosaAlive = False
+        for jugador in jugadores:
+            if jugador.Rol == "humano":
+                humanos.append(jugador.id)
+            if jugador.Rol == "lacosa" and jugador.isAlive:
+                print("AAAAAAAAsdadAAAAAAAAAAAAAAAAa")
+                isLacosaAlive = True
+            if jugador.Rol == "lacosa" or jugador.Rol == "infectado":
+                cosos.append(jugador.id)
+    
+    if len(humanos) == 0 and isLacosaAlive: # gana la cosa y su team
         
+        return (sorted(cosos), "cosos")
+        
+    else:
+        if not isLacosaAlive: # ganan los humanos
+            
+            return (sorted(humanos), "humanos")
+        else:
+            return ([], "no termino")

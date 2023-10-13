@@ -41,7 +41,8 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                         break
             
             # por ahora aca porque esto marca el fin del turno, desp lo pondre en intercambiar carta
-            fin_partida(partida.id)
+            
+            await fin_partida(partida.id)
 
         else:
             raise HTTPException(status_code=400, detail="No existe el id de la carta ó jugador que la tenga")

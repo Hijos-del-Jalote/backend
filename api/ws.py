@@ -2,7 +2,7 @@ from fastapi.websockets import *
 from typing import List, Dict
 from .router.schemas import *
 from db.models import *
-from db.partidas_session import get_partida
+from db.partidas_session import get_partida, fin_partida_respond
 
 class ConnectionManager:
     def __init__(self):
@@ -28,15 +28,18 @@ class ConnectionManager:
                 await connection.send_json(data)
 
 
-    async def handle_data(self, data: str, idPartida: int):
+    async def handle_data(self, data: str, idPartida: int, winners = [], winning_team = ""): # esto esta opcional?
         
         match data:
             case "unir": # or cualquier otro que requiera este json.
                 dumper: PartidaResponse = get_partida(idPartida)
                 await self.broadcast(dumper.model_dump_json(), idPartida)
             case "finalizar":
-                dumper: FinPartidaResponse = fin_partida_respond(idPartida)
+                
+                dumper: FinPartidaResponse = fin_partida_respond(idPartida, winners, winning_team)
+                print(dumper.model_dump_json())
                 await self.broadcast(dumper.model_dump_json(), idPartida)
+                
             case _:
                 print("El resto")
 

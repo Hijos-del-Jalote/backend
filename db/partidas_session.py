@@ -1,5 +1,5 @@
 from api.router.schemas import *
-from db.models import Partida
+from db.models import Partida, Jugador
 from pony.orm import db_session
 
 def get_partida(id: int) -> PartidaResponse:
@@ -21,32 +21,24 @@ def get_partida(id: int) -> PartidaResponse:
 
     return partidaResp
 
-def fin_partida_respond(idPartida: int) -> FinPartidaResponse:
+def fin_partida_respond(idPartida: int, winners: list, winning_team: str) -> FinPartidaResponse:
     with db_session:
-        jugadores = partida.jugadores
-        humanos = []
-        cosos = []
-        isLacosaAlive = false
-        for jugador in jugadores:
-            if jugador.Rol == "humano":
-                humanos.append(jugador.id)
-            if jugador.Rol == "lacosa" and jugador.isAlive:
-                isLacosaAlive = True
-            if jugador.Rol == "lacosa" or jugador.Rol == "infectado":
-                cosos.append(jugador.id)
-
-    if len(humanos) == 0 and isLacosaAlive: # gana la cosa y su team
-        partida.finalizada = True
-        db.commit()
-        return FinPartidaResponse(isHumanoTeamWinner=False,
-                                  winners=sorted(cosos))
-    else:
-        if (not isLacosaAlive) and len(humanos) > 0: # ganan los humanos
-            partida.finalizada = True
-            db.commit()
-            return FinPartidaResponse(
-                                      isHumanoTeamWinner=False,
-                                      winners=sorted(humanos))
+        
+        # por las dudas que haya problema con la db, los vuelvo a obtener
+        ganadores = []
+        for jugador in winners:    
+            ganadores.append(jugador)
+        
+        if winning_team == "cosos":
+            return FinPartidaResponse(isHumanoTeamWinner=False,
+                                      winners=sorted(ganadores))
+            
         else:
-            raise Exception
+            if winning_team == "humanos":
+                
+                return FinPartidaResponse(isHumanoTeamWinner=True,
+                                      winners=sorted(ganadores))
+                
+            else:
+                raise Exception
 
