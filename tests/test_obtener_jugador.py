@@ -36,6 +36,8 @@ def test_get_jugador_valido(setup_db_before_test):
             'posicion': Jugador[1].Posicion,
             'isAlive': Jugador[1].isAlive,
             'rol': Jugador[1].Rol,
+            'blockIzq': Jugador[1].blockIzq,
+            'blockDer': Jugador[1].blockDer,
             'cartas': lista_cartas
         }
 

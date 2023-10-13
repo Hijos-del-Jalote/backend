@@ -25,10 +25,13 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                     efectos_cartas.vigila_tus_espaldas(partida)
                 case "Cambio de lugar":
                     efectos_cartas.cambio_de_lugar(carta.jugador, Jugador[id_objetivo])
-                
+                case "Puerta trancada":
+                    efectos_cartas.puerta_trancada(carta.jugador, Jugador[id_objetivo])
+                    
             carta.jugador.cartas.remove(carta)
             carta.descartada=True
                 
+
             if partida.sentido:
                 for i in range(1, len(partida.jugadores)):
                     pos = (partida.turnoActual+i) % len(partida.jugadores)
