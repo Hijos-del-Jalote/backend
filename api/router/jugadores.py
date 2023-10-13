@@ -51,7 +51,7 @@ async def carta_robar(id: int):
         robar_carta(id)
     return {"detail": "Robo exitoso!"}
 
-@jugadores_router.put(path="/{id}/abandonar_lobby")
+@jugadores_router.put(path="/{id}/abandonar_lobby", status_code=status.HTTP_200_OK)
 async def abandonar_lobby(id: int):
     with db_session:
         jugador: Jugador = Jugador.get(id=id)
@@ -62,6 +62,9 @@ async def abandonar_lobby(id: int):
         if not jugador.partida:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="El jugador no se encuentra en una partida")
+        if jugador.partida.iniciada:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="No puede abandonar el lobby de una partida iniciada")
         else: 
             isHost = jugador.isHost
             partida = jugador.partida

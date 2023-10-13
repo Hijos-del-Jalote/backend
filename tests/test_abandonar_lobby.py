@@ -39,6 +39,11 @@ def test_abandonar_lobby_nopartida():
     assert response.status_code == 400
     assert response.json() == {'detail': 'El jugador no se encuentra en una partida'}
 
+def test_abandonar_lobby_partidainiciada():
+    response = client.put("jugadores/2/abandonar_lobby")
+    assert response.status_code == 400
+    assert response.json() == {'detail': 'No puede abandonar el lobby de una partida iniciada'}
+
 async def test_abandonar_lobby_host(cleanup_db_after_test):
     client1 = TestClient(app)
     client2 = TestClient(app)
