@@ -3,6 +3,52 @@ from db.models import *
 from pony.orm import db_session
 from fastapi import HTTPException
 
+#Esta funcion es para saber si jugador2 es adyacente a jugador1 y de que lado.
+#El valor de retorno es una tupla (adyacente, lado)
+#adyacente es bool indicando si es o no adyacente. Si no lo es entonces lado es None, sino:
+#lado es un int que puede ser: 0 si es adyacente por izquierda, 1 si es adyacente por derecha, y 2 si es adyacente por ambos lados, osea que son los unicos 2 jugadores vivos.
+@db_session
+def son_adyacentes(jugador1, jugador2):
+    if jugador1 and jugador2 and jugador1.partida == jugador2.partida:
+        partida = jugador1.partida
+        cant = len(partida.jugadores)
+        #flag para saber si encontramos.
+        encontradoDer, encontradoIzq  = False, False
+
+        #Busco por derecha
+        for i in range(1, len(partida.jugadores)):
+            pos_sig = (jugador1.Posicion+i) % cant
+            jug_sig = Jugador.get(Posicion=pos_sig, partida=partida)
+            if jug_sig.isAlive:
+                if jug_sig.Posicion == jugador2.Posicion:
+                    encontradoDer = True
+                break
+
+        #Busco por izquierda
+        for i in range(1, len(partida.jugadores)):
+            pos_ant = (jugador1.Posicion-i) % cant
+            jug_ant = Jugador.get(Posicion=pos_ant, partida=partida)
+            if jug_ant.isAlive:
+                if jug_ant.Posicion == jugador2.Posicion:
+                    encontradoIzq = True
+                break
+        
+        #No se encontro
+        if (not encontradoIzq) and (not encontradoDer):
+            return (False, None)
+        #Se encontro por la izquierda
+        elif (not encontradoDer) and encontradoIzq:
+            return (True, 0)
+        #Se encontro por la derecha
+        elif encontradoDer and (not encontradoIzq):
+            return (True, 1)
+        #Se encontro por ambos lados
+        else:
+            return (True, 2)
+             
+    else:
+        raise Exception("Los jugadores o no existen o no pertenecen a la misma partida")     
+
 def efecto_lanzallamas(id_objetivo):
     with db_session:
         if (id_objetivo != None) & (Jugador.exists(id=id_objetivo)):
@@ -24,47 +70,23 @@ def vigila_tus_espaldas(partida):
 def puerta_trancada(jugador1, jugador2):
     with db_session:
         if jugador1 and jugador2:
-            partida = jugador1.partida
-            cant = len(partida.jugadores)
-            #ACA SE ASUME QUE SI SENTIDO=TRUE EL SENTIDO DE LA PARTIDA ES ANTIHORARIO, OSEA (POSICION+1 MOD CANT) CORRESPONDE BLOQUEO DE DERECHA Y (POSICION-1 MOD CANT) CORRESPONDE BLOQUEO DE IZQUIERDA 
-            
             #Checkeo que jugador2 sea adyacente a jugador1 y decido si es adyacente por izquiera o por derecha para saber de que lado poner el bloqueo.
-            #La idea es recorrer las posiciones anteriores y siguentes a la posicion de jugador1 hasta que encuentre el primer jugador vivo.
-            #Una vez que encuentro el primer jugador vivo (izq o der) me fijo si es jugador2.
-            #Si lo es, entonces aplico bloqueos.
-            #Si no, pongo una de las flags en False para saber que por ese lado no puede ser adyacente.
-             
-            #flags para saber si la busqueda de izq o derecha es valida (si encontramos un jugador vivo pero que no es jugador2 entonces se vuelve no valid)
-            der_valido, izq_valido = True, True
-            #flag para saber si encontramos.
-            encontrado = False
-            for i in range(1, len(partida.jugadores)):
-                
-                pos_sig = (partida.turnoActual+i) % cant
-                jug_sig = Jugador.get(Posicion=pos_sig, partida=partida)
-                
-                pos_ant = (partida.turnoActual-i) % cant
-                jug_ant = Jugador.get(Posicion=pos_ant, partida=partida)
-                
-                if jug_sig.isAlive and der_valido:
-                    if jug_sig.Posicion != jugador2.Posicion:
-                        der_valido = False
-                    else:
-                        jugador1.blockDer = True
-                        jugador2.blockIzq = True         
-                        db.commit()
-                        encontrado = True
-                if jug_ant.isAlive and izq_valido:
-                    if jug_ant.Posicion != jugador2.Posicion:
-                        izq_valido = False
-                    else:
-                        jugador1.blockIzq = True
-                        jugador2.blockDer = True
-                        db.commit()
-                        encontrado = True
-                        
-                if (not encontrado) and (not der_valido) and (not izq_valido):
-                    raise HTTPException(status_code=400, detail="Jugadores no son adyacentes")                
+            adyacentes = son_adyacentes(jugador1, jugador2)
+            print(adyacentes)
+            if not adyacentes[0]:
+                raise HTTPException(status_code=400, detail="Jugadores no son adyacentes") 
+            elif adyacentes[1] == 0:
+                jugador1.blockIzq = True
+                jugador2.blockDer = True
+            elif adyacentes[1] == 1:
+                jugador1.blockDer = True
+                jugador2.blockIzq = True
+            else:
+                jugador1.blockIzq = True
+                jugador1.blockDer = True
+                jugador2.blockIzq = True
+                jugador2.blockDer = True
+                                    
         else:
             raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")
 
@@ -73,8 +95,9 @@ def cambio_de_lugar(jugador1, jugador2):
     with db_session:
         if jugador1 and jugador2:
             cant = len(jugador1.partida.jugadores)
+            ady = son_adyacentes(jugador1, jugador2)
             #ACA SE ASUME QUE SI SENTIDO=TRUE EL SENTIDO DE LA PARTIDA ES ANTIHORARIO, OSEA (POSICION+1 MOD CANT) CORRESPONDE BLOQUEO DE DERECHA Y (POSICION-1 MOD CANT) CORRESPONDE BLOQUEO DE IZQUIERDA 
-            if (not jugador2.cuarentena) and ((jugador1.Posicion+1 % cant == jugador2.Posicion and not jugador1.blockDer) or (jugador1.Posicion-1 % cant == jugador2.Posicion and not jugador1.blockIzq)):
+            if ady[0] and (not jugador2.cuarentena) and ((ady[1]==1 and not jugador1.blockDer) or (ady[1]==0 and not jugador1.blockIzq) or (ady[1]==2 and (not jugador1.blockIzq) and (not jugador1.blockDer))):
                 p1 = jugador1.Posicion
                 d1 = jugador1.blockDer
                 i1 = jugador1.blockIzq
