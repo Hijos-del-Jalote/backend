@@ -34,7 +34,7 @@ async def test_finalizar_partida():
     with db_session:
         partida = Partida.get(id=partida.id)
         for j in partida.jugadores:
-            j.Rol = "humano"
+            j.Rol = "Humano"
             j.isAlive = True
             ganadores.append(j.id)
             if j.Posicion == partida.turnoActual:
@@ -42,8 +42,11 @@ async def test_finalizar_partida():
             else:
                 lacosa = j # se lo asigno a uno que no sea el que le toca
             
-        lacosa.Rol = "lacosa"
+        lacosa.Rol = "La cosa"
         lacosa.isAlive = False
+        for j in partida.jugadores:
+            print(j.Rol)
+            print(j.isAlive)
         ganadores.remove(lacosa.id)
         idcarta = list(jugadorActual.cartas)[0].id
         commit()

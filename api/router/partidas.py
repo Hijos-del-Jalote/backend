@@ -167,16 +167,16 @@ def get_winners(idPartida: int, idJugador: int) -> tuple:
         isLacosaAlive = True
         cosaunicoganador = True
         for jugador in jugadores:
-            if jugador.Rol == "humano":
+            if jugador.Rol == "Humano":
                 humanos.append(jugador.id)
-            if jugador.Rol == "lacosa" and not jugador.isAlive:
+            if jugador.Rol == "La cosa" and not jugador.isAlive:
                 isLacosaAlive = False
             # ultimo humano sigue contando como humano, asi que no está en cosos:
-            if (jugador.Rol == "lacosa" or jugador.Rol == "infectado") and (jugador.id != idJugador):
+            if (jugador.Rol == "La cosa" or jugador.Rol == "Infectado") and (jugador.id != idJugador):
                 cosos.append(jugador.id)
             if not jugador.isAlive:
                 cosaunicoganador = False
-            if jugador.Rol == "lacosa":
+            if jugador.Rol == "La cosa":
                 idLacosa = jugador.id
 
     if len(humanos) == 0 and isLacosaAlive: # gana la cosa y su team
