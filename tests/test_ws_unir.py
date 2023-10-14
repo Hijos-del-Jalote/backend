@@ -15,9 +15,9 @@ async def test_unir_jugador_ws(setup_db_before_test):
     client2 = TestClient(app)
 
     response = client2.post(f'jugadores?nombre=WinterIsComing')
+    response1 = client1.post(f'jugadores?nombre=FireAndBlood')
     
-    
-    with client1.websocket_connect("ws://localhost:8000/partidas/2/ws") as websocket:
+    with client1.websocket_connect(f"ws://localhost:8000/partidas/2/ws?idJugador={response1.json()['id']}") as websocket:
         assert len(manager.active_connections[2]) == 1
 
         # mandar un post con otro cliente: 
@@ -31,10 +31,12 @@ async def test_unir_jugador_ws(setup_db_before_test):
 async def test_iniciar_partida_ws(cleanup_db_after_test):
     client1 = TestClient(app)
     client2 = TestClient(app)
+
+    response = client1.post(f'jugadores?nombre=FireAndBlood')
     
     partida = 2
 
-    with client1.websocket_connect("ws://localhost:8000/partidas/2/ws") as websocket:
+    with client1.websocket_connect(f"ws://localhost:8000/partidas/2/ws?idJugador={response.json()['id']}") as websocket:
         assert len(manager.active_connections[2]) == 1
 
         # mandar un post con otro cliente:

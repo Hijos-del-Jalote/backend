@@ -14,7 +14,7 @@ async def test_abandonar_lobby_nohost(setup_db_before_test):
     client2 = TestClient(app)
 
     
-    with client1.websocket_connect("ws://localhost:8000/partidas/2/ws") as websocket:
+    with client1.websocket_connect("ws://localhost:8000/partidas/2/ws?idJugador=7") as websocket:
         assert len(manager.active_connections[2]) == 1
 
         # mandar un post con otro cliente: 
@@ -49,7 +49,7 @@ async def test_abandonar_lobby_host(cleanup_db_after_test):
     client2 = TestClient(app)
 
     
-    with client1.websocket_connect("ws://localhost:8000/partidas/2/ws") as websocket:
+    with client1.websocket_connect("ws://localhost:8000/partidas/2/ws?idJugador=7") as websocket:
         assert len(manager.active_connections[2]) == 1
 
         # mandar un post con otro cliente: 
@@ -63,3 +63,4 @@ async def test_abandonar_lobby_host(cleanup_db_after_test):
                                      'jugadores': []}}
         with db_session:
             assert Jugador[5].partida == None
+            assert Jugador[7].partida == None

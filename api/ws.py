@@ -9,27 +9,36 @@ from db.jugadores_session import get_abandonarlobby_data
 
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: Dict[int, List[WebSocket]] = {}
+        self.active_connections: Dict[int, Dict[int,WebSocket]] = {}
 
-    async def connect(self, websocket: WebSocket, idPartida: int): 
+    async def connect(self, websocket: WebSocket, idPartida: int, idJugador: int): 
         await websocket.accept()
-        
+
         if idPartida not in self.active_connections:
-            self.active_connections[idPartida] = []
+            self.active_connections[idPartida] = {}
 
-        self.active_connections[idPartida].append(websocket)
-        
+        self.active_connections[idPartida][idJugador] = websocket
 
-    def disconnect(self, websocket: WebSocket, idPartida: int):
-        if idPartida in self.active_connections:
-            self.active_connections[idPartida].remove(websocket)
+
+    async def disconnect(self, idPartida: int, idJugador: int):
+        if idPartida in self.active_connections and idJugador in self.active_connections[idPartida]:
+            del self.active_connections[idPartida][idJugador]
+
 
     async def broadcast(self, data: str, idPartida: int):
         if idPartida in self.active_connections:
-            for connection in self.active_connections[idPartida]:
-                print(f'broadcasting to {connection}')
-                await connection.send_json(data)
+            for id, websocket in self.active_connections[idPartida].items():
+                print(f'broadcasting to {id}')
+                await websocket.send_json(data)
 
+    async def await_response(self, idPartida:int, idJugador: int):
+        response = None
+        if idPartida in self.active_connections:
+            for websocket_id, websocket in self.active_connections[idPartida].items():
+                if websocket_id == idJugador:
+                    response = await websocket.receive_text()
+                    break
+        return response
 
 
     async def handle_data(self, event: str, idPartida: int, idJugador = -1, winners = [], winning_team = ""):
