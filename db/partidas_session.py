@@ -21,13 +21,8 @@ def get_partida(id: int) -> PartidaResponse:
 
     return partidaResp
 
-def fin_partida_respond(idPartida: int, winners: list, winning_team: str) -> FinPartidaResponse:
+def fin_partida_respond(idPartida: int, ganadores: list, winning_team: str) -> FinPartidaResponse:
     with db_session:
-        
-        # por las dudas que haya problema con la db, los vuelvo a obtener
-        ganadores = []
-        for jugador in winners:    
-            ganadores.append(jugador)
         
         if winning_team == "cosos":
             return FinPartidaResponse(isHumanoTeamWinner=False,

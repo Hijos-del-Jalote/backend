@@ -140,45 +140,49 @@ async def websocket_endpoint(websocket: WebSocket, idPartida: int):
     except WebSocketDisconnect:
         manager.disconnect(websocket, idPartida)
 
-async def fin_partida(idPartida: int):
+async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la ultima carta
 
     with db_session:
-        if db.Partida.exists(id=idPartida):
-            
-            
-            winners = get_winners(idPartida)
+        if db.Partida.exists(id=idPartida):  
+            winners = get_winners(idPartida, idJugador)
             partida = Partida.get(id=idPartida)
+
             if len(winners) != 0:
                 partida.finalizada = True
                 db.commit()
-                print(winners[0])
                 await manager.handle_data("finalizar", idPartida, winners[0], winners[1])
             
         else:
             raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
 
-def get_winners(idPartida: int) -> tuple:
+def get_winners(idPartida: int, idJugador: int) -> tuple:
     with db_session:
         jugadores = Partida.get(id=idPartida).jugadores
         humanos = []
         cosos = []
-        isLacosaAlive = False
+        isLacosaAlive = True
+        cosaunicoganador = True
         for jugador in jugadores:
             if jugador.Rol == "humano":
                 humanos.append(jugador.id)
-            if jugador.Rol == "lacosa" and jugador.isAlive:
-                print("AAAAAAAAsdadAAAAAAAAAAAAAAAAa")
-                isLacosaAlive = True
-            if jugador.Rol == "lacosa" or jugador.Rol == "infectado":
+            if jugador.Rol == "lacosa" and not jugador.isAlive:
+                isLacosaAlive = False
+            # ultimo humano sigue contando como humano, asi que no está en cosos:
+            if (jugador.Rol == "lacosa" or jugador.Rol == "infectado") and (jugador.id != idJugador):
                 cosos.append(jugador.id)
-    
+            if not jugador.isAlive:
+                cosaunicoganador = False
+            if jugador.Rol == "lacosa":
+                idLacosa = jugador.id
+
     if len(humanos) == 0 and isLacosaAlive: # gana la cosa y su team
-        
-        return (sorted(cosos), "cosos")
+        if len(cosos) == len(jugadores) and cosaunicoganador: # si para todos isAlive y todos infectados
+            return ([idLacosa], "cosos")
+        else:
+            return (sorted(cosos), "cosos")
         
     else:
         if not isLacosaAlive: # ganan los humanos
-            
             return (sorted(humanos), "humanos")
         else:
             return ([], "no termino")

@@ -12,10 +12,6 @@ from typing import List
 import asyncio
 from .test_robar_carta import vaciar_manos
 
-async def wait_ws(websocket):
-    response = await websocket.receive_json()
-    return json.loads(response)
-
 async def test_finalizar_partida():
     client1 = TestClient(app)
     client2 = TestClient(app)
@@ -33,42 +29,37 @@ async def test_finalizar_partida():
         client2.post(f'partidas/unir?idPartida={partida.id}&idJugador={response.json()["id"]}')
 
     response = client2.put(f'partidas/iniciar?idPartida={partida.id}')
+    
     # Esperar la respuesta del websocket en el cliente1:
     ganadores = []
     with db_session:
         partida = Partida.get(id=partida.id)
         for j in partida.jugadores:
-            if j.Rol != "lacosa":
-                j.Rol = "infectado"
-            else:
-                j.isAlive = True
-            ultimojugador = j
+            j.Rol = "humano"
+            j.isAlive = True
             ganadores.append(j.id)
             if j.Posicion == partida.turnoActual:
                 jugadorActual = j
-        j.Rol = "lacosa"
-        j.isAlive = True
+            else:
+                lacosa = j # se lo asigno a uno que no sea el que le toca
+            
+        lacosa.Rol = "lacosa"
+        lacosa.isAlive = False
+        ganadores.remove(lacosa.id)
         idcarta = list(jugadorActual.cartas)[0].id
-        # ultimojugador.Rol = "humano"
         commit()
         assert partida.finalizada == False
         
-        with client1.websocket_connect("ws://localhost:8000/partidas/3/ws") as websocket:
-            res = await wait_ws(websocket)
-            response2 = await client2.post(f'cartas/jugar?id_carta={idcarta}')
-            assert(response2.status_code == 200)
-            
-            # TAMBIEN PROBE ESTO:    
-            # tasks = [wait_ws(websocket), client2.post(f'cartas/jugar?id_carta={idcarta}')]
-            # res, response2 = await asyncio.gather(*tasks)
-            
-            # por ahora este json debe ser el de finalizar de partida ya que es el unico en jugar carta de ws,
-            # desp si se agrega el de jugar carta, se cambia esto
-            ####### Se queda esperando aca
-            
-            #######
-            print("BBBBBBBBBBBBBBBBBBBBBBB")
-            assert res == {"event": "finalizar", "data": json.dumps({'isHumanoTeamWinner': False, 'winners': sorted(ganadores)})}
+        
+    with client1.websocket_connect(f"ws://localhost:8000/partidas/{partida.id}/ws") as websocket:
+        
+        response2 = client2.post(f'cartas/jugar?id_carta={idcarta}')
+        assert(response2.status_code == 200)
+
+        response = websocket.receive_json()
+        # {"event": "finalizar", "data": json.dumps({'isHumanoTeamWinner': True, 'winners': sorted(ganadores)})}
+        assert response == json.dumps({'isHumanoTeamWinner': True, 'winners': sorted(ganadores)},
+                                         separators=(',',':'))
         
         with db_session:
             assert Partida.get(id=partida.id).finalizada == True
