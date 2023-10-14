@@ -12,7 +12,7 @@ from typing import List
 import asyncio
 from .test_robar_carta import vaciar_manos
 
-async def test_finalizar_partida():
+async def test_finalizar_partida(cleanup_db_after_test):
     client1 = TestClient(app)
     client2 = TestClient(app)
     
@@ -44,9 +44,6 @@ async def test_finalizar_partida():
             
         lacosa.Rol = "La cosa"
         lacosa.isAlive = False
-        for j in partida.jugadores:
-            print(j.Rol)
-            print(j.isAlive)
         ganadores.remove(lacosa.id)
         idcarta = list(jugadorActual.cartas)[0].id
         commit()
@@ -60,8 +57,8 @@ async def test_finalizar_partida():
 
         response = websocket.receive_json()
         # {"event": "finalizar", "data": json.dumps({'isHumanoTeamWinner': True, 'winners': sorted(ganadores)})}
-        assert response == json.dumps({'isHumanoTeamWinner': True, 'winners': sorted(ganadores)},
-                                         separators=(',',':'))
+        assert response == {"event": "finalizar", "data": json.dumps({'isHumanoTeamWinner': True, 'winners': sorted(ganadores)},
+                                         separators=(',',':'))}
         
         with db_session:
             assert Partida.get(id=partida.id).finalizada == True

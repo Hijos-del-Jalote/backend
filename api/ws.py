@@ -46,7 +46,7 @@ class ConnectionManager:
                 data = build_dict("abandonar lobby",get_abandonarlobby_data(idJugador, idPartida))
                 await self.broadcast(data,idPartida)
             case "finalizar":
-                data = build_dict("finalizar", fin_partida_respond(idPartida, winners, winning_team))
+                data = build_dict("finalizar", fin_partida_respond(idPartida, winners, winning_team).model_dump_json())
                 await self.broadcast(data, idPartida)
             case _:
                 print("El resto")
