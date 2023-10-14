@@ -15,7 +15,6 @@ from .test_robar_carta import vaciar_manos
 async def test_finalizar_partida():
     client1 = TestClient(app)
     client2 = TestClient(app)
-
     
     response = client2.post(f'jugadores?nombre={"J" + str(0)}')
     hostid = response.json()["id"]

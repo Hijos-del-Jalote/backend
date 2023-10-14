@@ -14,26 +14,26 @@ client = TestClient(app)
 def cant_cartas_por_partida(partida):
     cant_jugadores = len(partida.jugadores)
     if cant_jugadores == 4:
-        cartas = 30
+        cartas = 35
     elif cant_jugadores == 5:
-        cartas = 36
+        cartas = 41
     elif cant_jugadores == 6:
-        cartas = 50
+        cartas = 54
     elif cant_jugadores == 7:
-        cartas = 59
+        cartas = 63
     elif cant_jugadores == 8:
-        cartas = 66
+        cartas =69
     elif cant_jugadores == 9:
-        cartas = 84
+        cartas = 88
     elif cant_jugadores == 10:
-        cartas = 92
+        cartas = 95
     elif cant_jugadores == 11:
-        cartas = 105
+        cartas = 108
     elif cant_jugadores == 12:
-        cartas = 105
+        cartas = 108
     return cartas
 
-def test_crear_mazo():
+def test_crear_mazo(cleanup_db_after_test):
     for i in range (4,13):
         jugadores = []
         for j in range(i):

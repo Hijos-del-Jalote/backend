@@ -16,8 +16,6 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
         idJugador = carta.jugador.id
         if carta and carta.jugador:
             if carta.partida.turnoActual != carta.jugador.Posicion : raise HTTPException(status_code=400, detail="No es el turno del jugador que tiene esta carta") 
-            carta.jugador.cartas.remove(carta)
-            carta.descartada=True
 
             partida = carta.partida
             
@@ -27,7 +25,15 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                     efectos_cartas.efecto_lanzallamas(id_objetivo)
                 case "Vigila tus espaldas":
                     efectos_cartas.vigila_tus_espaldas(partida)
+                case "Cambio de lugar":
+                    efectos_cartas.cambio_de_lugar(carta.jugador, Jugador[id_objetivo])
+                case "Puerta trancada":
+                    efectos_cartas.puerta_trancada(carta.jugador, Jugador[id_objetivo])
+                    
+            carta.jugador.cartas.remove(carta)
+            carta.descartada=True
                 
+
             if partida.sentido:
                 for i in range(1, len(partida.jugadores)):
                     pos = (partida.turnoActual+i) % len(partida.jugadores)

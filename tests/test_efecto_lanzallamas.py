@@ -8,7 +8,7 @@ from db.models import *
 client = TestClient(app)
 
 
-def test_efecto_lanzallamas():
+def test_efecto_lanzallamas(cleanup_db_after_test):
     with db_session:
         l = False
         #Crear template de una carta lanzallamas si no existe

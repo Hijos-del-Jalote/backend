@@ -11,7 +11,7 @@ from db.cartas_session import *
 client = TestClient(app)
 
 
-def test_repartir_cartas():
+def test_repartir_cartas(cleanup_db_after_test):
     for i in range (4,12):
         jugadores = []
         for j in range(i):

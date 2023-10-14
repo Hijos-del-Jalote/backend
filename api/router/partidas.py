@@ -102,9 +102,16 @@ async def iniciar_partida(idPartida: int):
         partida.turnoActual = randint(0,len(partida.jugadores)-1)
         posicion = 0
         for jugador in partida.jugadores:
-            jugador.Rol = "humano"
+            for carta in jugador.cartas:
+                if carta.template_carta.nombre == "La cosa":
+                    jugador.Rol = "La cosa"
+                    break
+                else:
+                    jugador.Rol = "Humano"
             jugador.Posicion = posicion
             posicion += 1
+    await manager.handle_data("iniciar", idPartida)
+    return {"detail": "Partida iniciada con exito"}
 
 
 @partidas_router.get(path="/{id}/estado", response_model=EstadoPartida, status_code=status.HTTP_200_OK)
@@ -132,10 +139,7 @@ async def websocket_endpoint(websocket: WebSocket, idPartida: int):
     
     try:
         while True:
-            data = await websocket.receive_text()
-            print(f'data::::::::::::::::{data}')
-            await manager.handle_data(data,idPartida)
-            pass
+            await websocket.receive_text()
 
     except WebSocketDisconnect:
         manager.disconnect(websocket, idPartida)
