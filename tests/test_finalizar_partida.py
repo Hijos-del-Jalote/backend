@@ -44,6 +44,7 @@ async def test_finalizar_partida(cleanup_db_after_test):
             
         lacosa.Rol = "La cosa"
         lacosa.isAlive = False
+        idlacosa = lacosa.id
         ganadores.remove(lacosa.id)
         idcarta = list(jugadorActual.cartas)[0].id
         commit()
@@ -52,7 +53,7 @@ async def test_finalizar_partida(cleanup_db_after_test):
         
     with client1.websocket_connect(f"ws://localhost:8000/partidas/{partida.id}/ws") as websocket:
         
-        response2 = client2.post(f'cartas/jugar?id_carta={idcarta}')
+        response2 = client2.post(f'cartas/jugar?id_carta={idcarta}&id_objetivo={idlacosa}')
         assert(response2.status_code == 200)
 
         response = websocket.receive_json()
