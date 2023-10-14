@@ -68,6 +68,21 @@ def puerta_trancada(jugador1, jugador2):
         else:
             raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")
 
+def intercambiar_posiciones(jugador1, jugador2):
+    with db_session:
+        p1 = jugador1.Posicion
+        d1 = jugador1.blockDer
+        i1 = jugador1.blockIzq
+        
+        jugador1.Posicion = jugador2.Posicion
+        jugador1.blockDer = jugador2.blockDer
+        jugador1.blockIzq = jugador2.blockIzq
+        
+        jugador2.Posicion = p1
+        jugador2.blockDer = d1
+        jugador2.blockIzq = i1
+        
+        db.commit()
 
 def cambio_de_lugar(jugador1, jugador2):
     with db_session:
@@ -75,19 +90,7 @@ def cambio_de_lugar(jugador1, jugador2):
             cant = len(jugador1.partida.jugadores)
             #ACA SE ASUME QUE SI SENTIDO=TRUE EL SENTIDO DE LA PARTIDA ES ANTIHORARIO, OSEA (POSICION+1 MOD CANT) CORRESPONDE BLOQUEO DE DERECHA Y (POSICION-1 MOD CANT) CORRESPONDE BLOQUEO DE IZQUIERDA 
             if (not jugador2.cuarentena) and ((jugador1.Posicion+1 % cant == jugador2.Posicion and not jugador1.blockDer) or (jugador1.Posicion-1 % cant == jugador2.Posicion and not jugador1.blockIzq)):
-                p1 = jugador1.Posicion
-                d1 = jugador1.blockDer
-                i1 = jugador1.blockIzq
-                
-                jugador1.Posicion = jugador2.Posicion
-                jugador1.blockDer = jugador2.blockDer
-                jugador1.blockIzq = jugador2.blockIzq
-                
-                jugador2.Posicion = p1
-                jugador2.blockDer = d1
-                jugador2.blockIzq = i1
-                
-                db.commit()
+                intercambiar_posiciones(jugador1, jugador2)
             else:
                 raise HTTPException(status_code=400, detail="Los jugadores no son adyacentes | El jugador objetivo esta en cuarentena | Hay una puerta trancada de por medio")
         else:
@@ -98,19 +101,7 @@ def mas_vale_que_corras(jugador1, jugador2):
     with db_session:
         if jugador1 and jugador2:
             if not jugador2.cuarentena:
-                p1 = jugador1.Posicion
-                d1 = jugador1.blockDer
-                i1 = jugador1.blockIzq
-                
-                jugador1.Posicion = jugador2.Posicion
-                jugador1.blockDer = jugador2.blockDer
-                jugador1.blockIzq = jugador2.blockIzq
-                
-                jugador2.Posicion = p1
-                jugador2.blockDer = d1
-                jugador2.blockIzq = i1
-                
-                db.commit()
+                intercambiar_posiciones(jugador1, jugador2)
             else:
                 raise HTTPException(status_code=400, detail="El jugador objetivo esta en cuarentena")
         else:
