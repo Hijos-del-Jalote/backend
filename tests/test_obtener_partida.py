@@ -7,14 +7,15 @@ from db.models import Partida
 client = TestClient(app)
 
 
-def test_get_partida_valid():
+def test_get_partida_valid(setup_db_before_test):
     response = client.get('partidas/1')
     with db_session:
 
         jugadores_list = sorted([{"id": j.id,
                                   "nombre": j.nombre,
                                   "posicion": j.Posicion,
-                                  "isAlive": j.isAlive} for j in Partida[1].jugadores], key=lambda j: j['id'])
+                                  "isAlive": j.isAlive,
+                                  "rol": j.Rol} for j in Partida[1].jugadores], key=lambda j: j['id'])
         
         expected_response = {
             'nombre': Partida[1].nombre,
@@ -30,7 +31,7 @@ def test_get_partida_valid():
     assert response.json() == expected_response
 
 
-def test_get_partida_invalid():
+def test_get_partida_invalid(cleanup_db_after_test):
     response = client.get('partidas/154589')
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json() == {'detail': 'Partida no encontrada'}

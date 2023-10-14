@@ -3,6 +3,7 @@ from typing import List, Dict
 from .router.schemas import *
 from db.models import *
 from db.partidas_session import get_partida
+from db.jugadores_session import get_abandonarlobby_data
 
 class ConnectionManager:
     def __init__(self):
@@ -28,13 +29,25 @@ class ConnectionManager:
                 await connection.send_json(data)
 
 
-    async def handle_data(self, data: str, idPartida: int):
+
+    async def handle_data(self, event: str, idPartida: int, idJugador = -1):
         
-        match data:
+        match event:
             case "unir": # or cualquier otro que requiera este json.
-                dumper: PartidaResponse = get_partida(idPartida)
-                await self.broadcast(dumper.model_dump_json(), idPartida)
+                data = build_dict("unir",get_partida(idPartida).model_dump_json())
+                await self.broadcast(data, idPartida)
+            case "iniciar":
+                data = build_dict("iniciar","null")
+                await self.broadcast(data, idPartida)
+            case "abandonar lobby":
+                data = build_dict("abandonar lobby",get_abandonarlobby_data(idJugador, idPartida))
+                await self.broadcast(data,idPartida)
             case _:
                 print("El resto")
 
 manager = ConnectionManager()
+
+
+def build_dict(event: str,data):
+    return {"event": event,
+            "data": data}

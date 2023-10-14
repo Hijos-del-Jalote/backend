@@ -4,6 +4,11 @@ from db.models import *
 from tests.test_newplayer import random_user
 import random
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #  
+# Si va a usar este código agregue sus propios jugadores y partidas, no toque nada de lo que ya está  #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+
 def load_jugadores():
     #(id,nombre,isHost,partida)
     jugadores = [
@@ -44,15 +49,14 @@ def load_partidas():
 def load_templates():
     with db_session:
         if count(TemplateCarta.select()) == 0:
-            carta_vacia = TemplateCarta(nombre="Carta vacía",
-                                        descripcion="Esto no hace nada",
-                                        tipo=Tipo_Carta.accion)
+            carta_vacia = TemplateCarta(nombre="Cuarentena",
+                                         descripcion="C", tipo=Tipo_Carta.obstaculo)
 
 def load_cartas():
     # (id,descartada, template, partida)
     cartas = []
     for i in range (1,10):
-        cartas.append((i,False,"Carta vacía",Partida[1]))
+        cartas.append((i,False,"Cuarentena",Partida[1]))
 
     with db_session:
         if count(Carta.select()) == 0:
