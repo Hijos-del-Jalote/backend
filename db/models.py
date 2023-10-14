@@ -55,6 +55,7 @@ class Partida(db.Entity):
     turnoActual = Optional(int)
     sentido = Required(bool, default=True)
     iniciada = Required(bool, default=False)
+    finalizada = Optional(bool, default=False)
     jugadores = Set(Jugador)
     cartas = Set(Carta)
 

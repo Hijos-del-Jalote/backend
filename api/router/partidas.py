@@ -8,6 +8,7 @@ from .schemas import *
 from random import randint
 from api.ws import manager
 from fastapi.websockets import *
+from typing import List
 
 
 partidas_router = APIRouter()
@@ -142,3 +143,51 @@ async def websocket_endpoint(websocket: WebSocket, idPartida: int):
 
     except WebSocketDisconnect:
         manager.disconnect(websocket, idPartida)
+
+async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la ultima carta
+
+    with db_session:
+        if db.Partida.exists(id=idPartida):  
+            winners = get_winners(idPartida, idJugador)
+            partida = Partida.get(id=idPartida)
+
+            if len(winners[0]) != 0:
+                partida.finalizada = True
+                db.commit()
+                await manager.handle_data(event="finalizar", idPartida=idPartida, 
+                                        winners=winners[0], winning_team=winners[1])
+            
+        else:
+            raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
+
+def get_winners(idPartida: int, idJugador: int) -> tuple:
+    with db_session:
+        jugadores = Partida.get(id=idPartida).jugadores
+        humanos = []
+        cosos = []
+        isLacosaAlive = True
+        cosaunicoganador = True
+        for jugador in jugadores:
+            if jugador.Rol == "Humano":
+                humanos.append(jugador.id)
+            if jugador.Rol == "La cosa" and not jugador.isAlive:
+                isLacosaAlive = False
+            # ultimo humano sigue contando como humano, asi que no está en cosos:
+            if (jugador.Rol == "La cosa" or jugador.Rol == "Infectado") and (jugador.id != idJugador):
+                cosos.append(jugador.id)
+            if not jugador.isAlive:
+                cosaunicoganador = False
+            if jugador.Rol == "La cosa":
+                idLacosa = jugador.id
+
+    if len(humanos) == 0 and isLacosaAlive: # gana la cosa y su team
+        if len(cosos) == len(jugadores) and cosaunicoganador: # si para todos isAlive y todos infectados
+            return ([idLacosa], "cosos")
+        else:
+            return (sorted(cosos), "cosos")
+        
+    else:
+        if not isLacosaAlive: # ganan los humanos
+            return (sorted(humanos), "humanos")
+        else:
+            return ([], "no termino")

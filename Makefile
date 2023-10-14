@@ -19,6 +19,7 @@ run_obtener_jugador_test:
 	rm db/database_test.sqlite
 	unset ENVIRONMENT
 
+
 run_ws_unir_test:
 	ENVIRONMENT=test
 	python3 tests/populate_db.py

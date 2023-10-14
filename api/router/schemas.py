@@ -33,4 +33,8 @@ class JugadorResponse(BaseModel):
     rol: Optional[str]
     cartas: Optional[List[Dict[str,Union[str,int]]]]
 
+class FinPartidaResponse(BaseModel):
+    isHumanoTeamWinner: Optional[bool]
+    winners: Optional[List[int]]
+
 
