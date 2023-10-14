@@ -93,6 +93,17 @@ def cambio_de_lugar(jugador1, jugador2):
         else:
             raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")
 
+def seduccion(carta1, carta2):
+    with db_session:
+        if carta1 and carta2:
+            if not carta2.jugador.cuarentena:
+                #INTERCAMBIAR CARTAS
+            else:
+                raise HTTPException(status_code=400, detail="El jugador objetivo esta en cuarentena")
+        else:
+            raise HTTPException(status_code=400, detail="Cartas proporcionadas no existente")
+
+
 def efecto_infeccion(id_objetivo, id_jugador):
     with db_session:
         if (id_objetivo != None) & (Jugador.exists(id=id_objetivo)):

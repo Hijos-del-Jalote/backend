@@ -9,7 +9,7 @@ from . import efectos_cartas
 cartas_router = APIRouter()
 
 @cartas_router.post("/jugar", status_code=200)
-async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
+async def jugar_carta(id_carta:int, id_base:int, id_objetivo:int | None = None):
     with db_session:
         carta = Carta.get(id=id_carta)
         if carta and carta.jugador:
@@ -27,7 +27,9 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                     efectos_cartas.cambio_de_lugar(carta.jugador, Jugador[id_objetivo])
                 case "Puerta trancada":
                     efectos_cartas.puerta_trancada(carta.jugador, Jugador[id_objetivo])
-                    
+                case "Puerta trancada":
+                    efectos_cartas.seduccion(Carta[id_base], Carta[id_objetivo])
+                     
             carta.jugador.cartas.remove(carta)
             carta.descartada=True
                 
