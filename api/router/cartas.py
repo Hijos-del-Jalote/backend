@@ -13,12 +13,11 @@ cartas_router = APIRouter()
 async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
     with db_session:
         carta = Carta.get(id=id_carta)
-        idJugador = carta.jugador.id
         if carta and carta.jugador:
             if carta.partida.turnoActual != carta.jugador.Posicion : raise HTTPException(status_code=400, detail="No es el turno del jugador que tiene esta carta") 
 
             partida = carta.partida
-            
+            idJugador = carta.jugador.id
             match carta.template_carta.nombre: 
             
                 case "Lanzallamas":
