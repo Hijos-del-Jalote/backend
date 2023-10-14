@@ -1,5 +1,5 @@
 from api.router.schemas import *
-from db.models import Partida
+from db.models import Partida, Jugador
 from pony.orm import db_session
 
 @db_session
@@ -30,3 +30,20 @@ def get_partida(id: int) -> PartidaResponse:
                                       jugadores=jugadores_list)
 
     return partidaResp
+
+def fin_partida_respond(idPartida: int, ganadores: list, winning_team: str) -> FinPartidaResponse:
+    with db_session:
+        
+        if winning_team == "cosos":
+            return FinPartidaResponse(isHumanoTeamWinner=False,
+                                      winners=sorted(ganadores))
+            
+        else:
+            if winning_team == "humanos":
+                
+                return FinPartidaResponse(isHumanoTeamWinner=True,
+                                      winners=sorted(ganadores))
+                
+            else:
+                raise Exception
+

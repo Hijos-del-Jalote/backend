@@ -19,6 +19,7 @@ def test_jugar_carta(cleanup_db_after_test):
             template_carta = TemplateCarta.get(nombre="Prueba")
         #Crear un jugador
         jugador = Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=True, Posicion=1)
+
         #Crear una partida con jugador host
         partida = Partida(nombre="Partida", maxJug=5, minJug=1, iniciada=True, turnoActual=0, sentido = False, jugadores={jugador})
         #Crear carta y asignarsela al jugador y partida
@@ -31,11 +32,9 @@ def test_jugar_carta(cleanup_db_after_test):
         db.commit()
         
         turno = partida.turnoActual
-
         #El jugador deberia jugar la carta correctamente
         response = client.post(f'cartas/jugar?id_carta={carta.id}')
         assert(response.status_code == 200)
-
         assert partida.turnoActual == (turno - 1) % len(partida.jugadores)
         
         #Jugar la carta nuevamente -> deberia dar error ya que la carta no pertenece a ningun jugador.
@@ -44,6 +43,8 @@ def test_jugar_carta(cleanup_db_after_test):
         #Jugar carta inexistente -> deberia dar error
         response = client.post('cartas/jugar?id_carta=1000000')
         assert(response.status_code == 400)
+
+
         if l:
             template_carta.delete()
         jugador.delete()
