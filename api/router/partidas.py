@@ -134,15 +134,14 @@ async def finalizar_partida(id: int) -> EstadoPartida:
         return EstadoPartida(finalizada=False, idGanador=-1)
 
 @partidas_router.websocket("/{idPartida}/ws")
-async def websocket_endpoint(websocket: WebSocket, idPartida: int):
-    await manager.connect(websocket, idPartida)
+async def websocket_endpoint(websocket: WebSocket, idPartida: int, idJugador: int):
+    await manager.connect(websocket, idPartida, idJugador)
     
     try:
         while True:
-            await websocket.receive_text()
-
+            data = await websocket.receive_text()
     except WebSocketDisconnect:
-        manager.disconnect(websocket, idPartida)
+        await manager.disconnect(idPartida, idJugador)
 
 async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la ultima carta
 

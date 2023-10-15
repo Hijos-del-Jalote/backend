@@ -51,7 +51,7 @@ async def test_finalizar_partida(cleanup_db_after_test):
         assert partida.finalizada == False
         
         
-    with client1.websocket_connect(f"ws://localhost:8000/partidas/{partida.id}/ws") as websocket:
+    with client1.websocket_connect(f"ws://localhost:8000/partidas/{partida.id}/ws?idJugador={idlacosa}") as websocket:
         
         response2 = client2.post(f'cartas/jugar?id_carta={idcarta}&id_objetivo={idlacosa}')
         assert(response2.status_code == 200)
