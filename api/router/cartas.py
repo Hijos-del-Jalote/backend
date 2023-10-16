@@ -3,7 +3,7 @@ from pony.orm import db_session
 from db.models import *
 from .partidas import fin_partida
 from . import efectos_cartas
-
+from db.cartas_session import *
 
 
 
@@ -56,3 +56,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
         else:
             raise HTTPException(status_code=400, detail="No existe el id de la carta ó jugador que la tenga")
 
+@cartas_router.put("/descartar_carta/{idCarta}", status_code=200)
+def descartar_carta_put(idCarta: int):
+    descartar_carta(idCarta)
+    
