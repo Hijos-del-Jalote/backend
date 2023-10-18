@@ -1,11 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from pony.orm import db_session
 from db.models import *
 from .partidas import fin_partida
 from . import efectos_cartas
-
-
-
+from ..ws import manager
+import json
+from db.cartas_session import intercambiar_cartas
 
 cartas_router = APIRouter()
 
@@ -56,3 +56,38 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
         else:
             raise HTTPException(status_code=400, detail="No existe el id de la carta ó jugador que la tenga")
 
+
+@cartas_router.put(path="/{idCarta}/intercambiar")
+async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
+
+    with db_session:
+        carta = Carta.get(id=idCarta)
+        jugObj: Jugador = Jugador.get(id=idObjetivo)
+        jugador = Jugador.get(id=carta.jugador.id)
+
+        if carta and jugObj:
+            if not jugador:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="No puede intercambiar una carta del mazo")
+            else:
+                response = await manager.handle_data("intercambiar", carta.partida.id, jugador.id,
+                                                     idCarta=idCarta, idJugador2=idObjetivo)
+                print(f"aqui4::{response}")  
+                json_data = json.loads(response)
+                print(f'JSONDATA:{json_data}')
+                if json_data['aceptado']:
+                    jo_carta: Carta = Carta.get(id=json_data['data'])
+
+                    if jo_carta.template_carta == "Infectado":
+                        jugador.Rol = Rol.infectado
+
+                    intercambiar_cartas(idCarta, json_data['data'])
+                    await manager.broadcast({'event': "intercambio exitoso"}, carta.partida.id)
+
+                else:
+                    await manager.broadcast({'event': "intercambio rechazado"}, carta.partida.id)
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Carta o jugador no encontrados")
+        
+    await manager.handle_data("fin_de_turno",carta.partida.id)
+    print("llegao aqui mano que wea")

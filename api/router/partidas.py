@@ -9,6 +9,7 @@ from random import randint
 from api.ws import manager
 from fastapi.websockets import *
 from typing import List
+import asyncio
 
 
 partidas_router = APIRouter()
@@ -129,7 +130,7 @@ async def finalizar_partida(id: int) -> EstadoPartida:
                 jugadores.append(jugador)
                 
     if len(jugadores) == 1: # o sea, hay ganador
-        return EstadoPartida(finalizada=True, idGanador=jugadores[0].id)
+        return EstadoPartida(finalizada=True, idGanador=jugadores[0].id)    
     else:
         return EstadoPartida(finalizada=False, idGanador=-1)
 
@@ -138,10 +139,13 @@ async def websocket_endpoint(websocket: WebSocket, idPartida: int, idJugador: in
     await manager.connect(websocket, idPartida, idJugador)
     
     try:
-        while True:
-            data = await websocket.receive_text()
+        while websocket.state == WebSocketState.CONNECTED:
+            print("auihallegao")
+            await manager.semaphores[idPartida][idJugador].acquire()
+            print("aquitambien")
     except WebSocketDisconnect:
         await manager.disconnect(idPartida, idJugador)
+        await manager.semaphores[idPartida][idJugador].release()
 
 async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la ultima carta
 

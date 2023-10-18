@@ -2,6 +2,8 @@
 from pony.orm import db_session, count
 from db.models import *
 from tests.test_newplayer import random_user
+from db.cartas_session import crear_templates_cartas
+from db.mazo_session import crear_mazo
 import random
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #  
@@ -45,26 +47,12 @@ def load_partidas():
                         jugadores=jugadores)
 
 
-
 def load_templates():
-    with db_session:
-        if count(TemplateCarta.select()) == 0:
-            carta_vacia = TemplateCarta(nombre="Cuarentena",
-                                         descripcion="C", tipo=Tipo_Carta.obstaculo)
+    crear_templates_cartas()
 
 def load_cartas():
-    # (id,descartada, template, partida)
-    cartas = []
-    for i in range (1,10):
-        cartas.append((i,False,"Cuarentena",Partida[1]))
-
     with db_session:
-        if count(Carta.select()) == 0:
-            for id, descartada, template, partida in cartas:
-                Carta(id=id,
-                      descartada=descartada,
-                      template_carta=template,
-                      partida=partida)
+        crear_mazo(Partida[1])
                 
 
 @db_session
