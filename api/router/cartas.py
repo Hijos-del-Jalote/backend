@@ -3,7 +3,7 @@ from pony.orm import db_session
 from db.models import *
 from .partidas import fin_partida
 from . import efectos_cartas
-
+from api.ws import manager
 
 
 
@@ -18,19 +18,33 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
 
             partida = carta.partida
             idJugador = carta.jugador.id
-            match carta.template_carta.nombre: 
             
-                case "Lanzallamas":
-                    efectos_cartas.efecto_lanzallamas(id_objetivo)
-                case "Vigila tus espaldas":
-                    efectos_cartas.vigila_tus_espaldas(partida)
-                case "Cambio de lugar":
-                    efectos_cartas.cambio_de_lugar(carta.jugador, Jugador[id_objetivo])
-                case "Mas vale que corras":
-                    efectos_cartas.mas_vale_que_corras(carta.jugador, Jugador[id_objetivo])
-                case "Puerta trancada":
-                    efectos_cartas.puerta_trancada(carta.jugador, Jugador[id_objetivo])
+            defendido = False
+            if id_objetivo != None:
+                await manager.handle_data(event="jugar carta", idObjetivo=id_objetivo, idCarta=id_carta, idJugador=idJugador)
+                response = await manager.await_response(partida.id,id_objetivo)
+                defendido = response['defendido'] 
+                if defendido: 
+                    #Descarto la carta del jugador que se defendio
+                    Jugador[id_objetivo].cartas.remove(response['idCarta'])
+                    #Devuelvo datos desde la perspectivo del que se defendio, preguntar.
+                    await manager.handle_data(event="jugar defensa", idObjetivo=idJugador, idCarta=response['idCarta'], idJugador=id_objetivo)                   
+                    
+            if not defendido:
+                match carta.template_carta.nombre: 
+                
+                    case "Lanzallamas":
+                        efectos_cartas.efecto_lanzallamas(id_objetivo)
+                    case "Vigila tus espaldas":
+                        efectos_cartas.vigila_tus_espaldas(partida)
+                    case "Cambio de lugar":
+                        efectos_cartas.cambio_de_lugar(carta.jugador, Jugador[id_objetivo])
+                    case "Mas vale que corras":
+                        efectos_cartas.mas_vale_que_corras(carta.jugador, Jugador[id_objetivo])
+                    case "Puerta trancada":
+                        efectos_cartas.puerta_trancada(carta.jugador, Jugador[id_objetivo])
 
+                
                     
             carta.jugador.cartas.remove(carta)
             carta.descartada=True
@@ -48,7 +62,8 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                     if Jugador.get(Posicion=pos, partida=partida).isAlive:
                         partida.turnoActual = pos
                         break
-            
+    
+            await manager.handle_data(event="fin_turno_jugar", idPartida=partida.id)                   
             # por ahora aca porque esto marca el fin del turno, desp lo pondre en intercambiar carta
             
             await fin_partida(partida.id, idJugador)

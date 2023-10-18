@@ -2,10 +2,9 @@ from fastapi.websockets import *
 from typing import List, Dict
 from .router.schemas import *
 from db.models import *
-
-from db.partidas_session import get_partida, fin_partida_respond
+from db.partidas_session import get_partida, fin_partida_respond, get_jugadores_partida
 from db.jugadores_session import get_abandonarlobby_data
-
+import json
 
 class ConnectionManager:
     def __init__(self):
@@ -41,7 +40,7 @@ class ConnectionManager:
         return response
 
 
-    async def handle_data(self, event: str, idPartida: int, idJugador = -1, winners = [], winning_team = ""):
+    async def handle_data(self, event: str, idPartida: int, idJugador = -1, winners = [], winning_team = "", idObjetivo = -1, idCarta = -1):
 
         
         match event:
@@ -56,6 +55,15 @@ class ConnectionManager:
                 await self.broadcast(data,idPartida)
             case "finalizar":
                 data = build_dict("finalizar", fin_partida_respond(idPartida, winners, winning_team).model_dump_json())
+                await self.broadcast(data, idPartida)
+            case "jugar carta":
+                data = build_dict("jugar_carta", JugarCartaData(idObjetivo, idCarta, idJugador).model_dump_json())
+                await self.broadcast(data, idPartida)
+            case "jugar defensa":
+                data = build_dict("jugar_resp", JugarCartaData(idObjetivo, idCarta, idJugador).model_dump_json())
+                await self.broadcast(data, idPartida)
+            case "fin turno jugar":
+                data = build_dict("fin_turno_jugar", json.dumps({"Partida" : getPartida(idPartida).model_dump_json(), "Jugadores" : get_jugadores_partida(idPartida).model_dump_json()}, 4))
                 await self.broadcast(data, idPartida)
             case _:
                 print("El resto")
