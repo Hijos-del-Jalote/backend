@@ -29,6 +29,7 @@ async def unir_jugador(idPartida:int, idJugador:int):
         if db.Partida.exists(id=idPartida) & db.Jugador.exists(id=idJugador):
             if not db.Jugador[idJugador].partida:
                 partida = db.Partida[idPartida].jugadores.add(db.Jugador[idJugador])
+                db.Jugador[idJugador].isHost=False
             else:
                 raise HTTPException(status_code=400, detail="Jugador already in Partida")
         else:
@@ -109,6 +110,10 @@ async def iniciar_partida(idPartida: int):
                     break
                 else:
                     jugador.Rol = "Humano"
+            jugador.isAlive = True
+            jugador.blockDer = False
+            jugador.blockIzq = False
+            jugador.cuarentena = False
             jugador.Posicion = posicion
             posicion += 1
     await manager.handle_data("iniciar", idPartida)
@@ -128,11 +133,11 @@ async def finalizar_partida(id: int) -> EstadoPartida:
         for jugador in partida.jugadores:
             if jugador.isAlive == True:
                 jugadores.append(jugador)
-                
-    if len(jugadores) == 1: # o sea, hay ganador
-        return EstadoPartida(finalizada=True, idGanador=jugadores[0].id)
-    else:
-        return EstadoPartida(finalizada=False, idGanador=-1)
+                commit()
+            if len(jugadores) == 1: # o sea, hay ganadors
+                return EstadoPartida(finalizada=True, idGanador=jugadores[0].id)
+            else:
+                return EstadoPartida(finalizada=False, idGanador=-1)
 
 @partidas_router.websocket("/{idPartida}/ws")
 async def websocket_endpoint(websocket: WebSocket, idPartida: int, idJugador: int):
@@ -153,6 +158,8 @@ async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la
 
             if len(winners[0]) != 0:
                 partida.finalizada = True
+                for jugador in  partida.jugadores:
+                    jugador.partida = None
                 db.commit()
                 await manager.handle_data(event="finalizar", idPartida=idPartida, 
                                         winners=winners[0], winning_team=winners[1])
