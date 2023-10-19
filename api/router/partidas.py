@@ -139,13 +139,11 @@ async def websocket_endpoint(websocket: WebSocket, idPartida: int, idJugador: in
     await manager.connect(websocket, idPartida, idJugador)
     
     try:
-        while websocket.state == WebSocketState.CONNECTED:
-            print("auihallegao")
-            await manager.semaphores[idPartida][idJugador].acquire()
-            print("aquitambien")
+        while True:
+            data = await websocket.receive_text()
+            await manager.put_in_message_queue(idPartida,idJugador,data)
     except WebSocketDisconnect:
         await manager.disconnect(idPartida, idJugador)
-        await manager.semaphores[idPartida][idJugador].release()
 
 async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la ultima carta
 

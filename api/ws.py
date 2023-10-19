@@ -9,24 +9,22 @@ from db.cartas_session import carta_data
 import time
 from websockets import exceptions
 import asyncio
+import json
 
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: Dict[int, Dict[int,WebSocket]] = {}
-        self.semaphores: Dict[int, Dict[int,asyncio.Semaphore]] = {}
-    async def connect(self, websocket: WebSocket, idPartida: int, idJugador: int): 
+        self.active_connections: Dict[int, Dict[int, WebSocket]] = {}
+        self.message_queues: Dict[int, Dict[int, asyncio.Queue]] = {}
+
+    async def connect(self, websocket: WebSocket, idPartida: int, idJugador: int):
         await websocket.accept()
 
         if idPartida not in self.active_connections:
             self.active_connections[idPartida] = {}
-            self.semaphores[idPartida] = {}
-
+            self.message_queues[idPartida] = {}
 
         self.active_connections[idPartida][idJugador] = websocket
-        self.semaphores[idPartida][idJugador] = asyncio.Semaphore(1)
-        await self.semaphores[idPartida][idJugador].acquire()
-        print(f"SEMA{self.semaphores[idPartida][idJugador]}")
-
+        self.message_queues[idPartida][idJugador] = asyncio.Queue()
 
     async def disconnect(self, idPartida: int, idJugador: int):
         if idPartida in self.active_connections and idJugador in self.active_connections[idPartida]:
@@ -40,14 +38,24 @@ class ConnectionManager:
                 await websocket.send_json(data)
 
     async def await_response(self, idPartida: int, idJugador: int):
-        print("ACA??")
         data = await self.active_connections[idPartida][idJugador].receive_text()
         return data
     
     async def personal_msg(self, msg: Dict, idPartida: int, idJugador: int):
         if idPartida in self.active_connections and idJugador in self.active_connections[idPartida]:
-            print(f'JUGADORpms: {idJugador}, {self.active_connections[idPartida][idJugador]}')
             await self.active_connections[idPartida][idJugador].send_json(msg)
+
+    # Método para poner datos en la cola
+    async def put_in_message_queue(self, idPartida: int, idJugador: int, data: str):
+        if idPartida in self.message_queues and idJugador in self.message_queues[idPartida]:
+            await self.message_queues[idPartida][idJugador].put(data)
+
+    # Método para obtener datos de la cola
+    async def get_from_message_queue(self, idPartida: int, idJugador: int):
+        if idPartida in self.message_queues and idJugador in self.message_queues[idPartida]:
+            data = await asyncio.wait_for(self.message_queues[idPartida][idJugador].get(),timeout=0.5)
+        return data
+
 
 
     async def handle_data(self, event: str, idPartida: int, idJugador = -1, winners = [],
@@ -71,18 +79,16 @@ class ConnectionManager:
                 # mando al jugador objetivo los datos de la carta
                 data = build_dict("intercambio_request", carta_data(idCarta))
                 await self.personal_msg(data,idPartida,idJugador2)
-                print("aqui1")
 
                 # aviso a los clientes que se está llevando a cabo un intercambio
                 data2 = build_dict("intercambio", {'idJugador1': idJugador,
                                                    'idJugador2': idJugador2})
                 await self.broadcast(data2, idPartida)
-                print("aqui2")
                 
                 #espero respuesta del jugador objetivo
-                response = await self.await_response(idPartida,idJugador2)
-                print("aqui3")
-                return response
+                response = await self.get_from_message_queue(idPartida, idJugador2)
+                json_data = json.loads(response)
+                return json_data
             
             case "fin_de_turno": # si aca devolvemos la partida entera se podria unir en un solo evento con "unir"
                 data = build_dict("fin_de_turno", get_partida(idPartida).model_dump_json())

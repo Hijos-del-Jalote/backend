@@ -61,7 +61,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
 async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
 
     with db_session:
-        carta = Carta.get(id=idCarta)
+        carta: Carta = Carta.get(id=idCarta)
         jugObj: Jugador = Jugador.get(id=idObjetivo)
         jugador = Jugador.get(id=carta.jugador.id)
 
@@ -72,16 +72,17 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
             else:
                 response = await manager.handle_data("intercambiar", carta.partida.id, jugador.id,
                                                      idCarta=idCarta, idJugador2=idObjetivo)
-                print(f"aqui4::{response}")  
-                json_data = json.loads(response)
-                print(f'JSONDATA:{json_data}')
-                if json_data['aceptado']:
-                    jo_carta: Carta = Carta.get(id=json_data['data'])
+                
+                if response['aceptado']:
+                    jo_carta: Carta = Carta.get(id=response['data'])
+                    
+                    if carta.template_carta.nombre == "Infectado":
+                        jugObj.Rol = Rol.infectado
 
                     if jo_carta.template_carta == "Infectado":
                         jugador.Rol = Rol.infectado
 
-                    intercambiar_cartas(idCarta, json_data['data'])
+                    intercambiar_cartas(idCarta, response['data'])
                     await manager.broadcast({'event': "intercambio exitoso"}, carta.partida.id)
 
                 else:
@@ -90,4 +91,3 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Carta o jugador no encontrados")
         
     await manager.handle_data("fin_de_turno",carta.partida.id)
-    print("llegao aqui mano que wea")
