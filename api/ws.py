@@ -53,8 +53,12 @@ class ConnectionManager:
     # Método para obtener datos de la cola
     async def get_from_message_queue(self, idPartida: int, idJugador: int):
         if idPartida in self.message_queues and idJugador in self.message_queues[idPartida]:
-            data = await asyncio.wait_for(self.message_queues[idPartida][idJugador].get(),timeout=0.5)
-        return data
+            while True:
+                try:
+                    data = await asyncio.wait_for(self.message_queues[idPartida][idJugador].get(),timeout=0.5)
+                    return data
+                except Exception:
+                    pass
 
 
 
