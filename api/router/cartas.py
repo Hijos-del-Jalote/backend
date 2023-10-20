@@ -65,7 +65,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                         partida.turnoActual = pos
                         break
     
-            await manager.handle_data(event="fin_turno_jugar", idPartida=partida.id)                   
+            await manager.handle_data(event="fin turno jugar", idPartida=partida.id)                   
             # por ahora aca porque esto marca el fin del turno, desp lo pondre en intercambiar carta
             
             await fin_partida(partida.id, idJugador)
