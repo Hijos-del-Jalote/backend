@@ -31,19 +31,20 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
                     #Devuelvo datos desde la perspectivo del que se defendio, preguntar.
                     await manager.handle_data(event="jugar defensa", idObjetivo=idJugador, idCarta=response['idCarta'], idJugador=id_objetivo)                   
                     
-            if not defendido:
-                match carta.template_carta.nombre: 
-                
-                    case "Lanzallamas":
-                        efectos_cartas.efecto_lanzallamas(id_objetivo)
-                    case "Vigila tus espaldas":
-                        efectos_cartas.vigila_tus_espaldas(partida)
-                    case "Cambio de lugar":
-                        efectos_cartas.cambio_de_lugar(carta.jugador, Jugador[id_objetivo])
-                    case "Mas vale que corras":
-                        efectos_cartas.mas_vale_que_corras(carta.jugador, Jugador[id_objetivo])
-                    case "Puerta trancada":
-                        efectos_cartas.puerta_trancada(carta.jugador, Jugador[id_objetivo])
+                elif not defendido:
+                    match carta.template_carta.nombre: 
+                    
+                        case "Lanzallamas":
+                            efectos_cartas.efecto_lanzallamas(id_objetivo)
+                        case "Vigila tus espaldas":
+                            efectos_cartas.vigila_tus_espaldas(partida)
+                        case "Cambio de lugar":
+                            print("here")
+                            efectos_cartas.cambio_de_lugar(carta.jugador, Jugador[id_objetivo])
+                        case "Mas vale que corras":
+                            efectos_cartas.mas_vale_que_corras(carta.jugador, Jugador[id_objetivo])
+                        case "Puerta trancada":
+                            efectos_cartas.puerta_trancada(carta.jugador, Jugador[id_objetivo])
 
                 
                     
