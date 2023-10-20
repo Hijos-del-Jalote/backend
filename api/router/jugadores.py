@@ -17,6 +17,7 @@ async def new_player(nombre: str) -> PlayerResponse:
                 detail="Empty username")
         else:
             user = Jugador(nombre = nombre)
+        commit() # si no le hago esto se rompe cuando uso el intercambiar y al mismo tiempo agrego un jugador (ni idea por que)
     return PlayerResponse(id=user.id)
 
 

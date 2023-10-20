@@ -6,8 +6,6 @@ from db.models import *
 from db.partidas_session import get_partida, fin_partida_respond
 from db.jugadores_session import get_abandonarlobby_data
 from db.cartas_session import carta_data
-import time
-from websockets import exceptions
 import asyncio
 import json
 
@@ -18,7 +16,7 @@ class ConnectionManager:
 
     async def connect(self, websocket: WebSocket, idPartida: int, idJugador: int):
         await websocket.accept()
-
+        print("user connected")
         if idPartida not in self.active_connections:
             self.active_connections[idPartida] = {}
             self.message_queues[idPartida] = {}
@@ -53,12 +51,15 @@ class ConnectionManager:
     # Método para obtener datos de la cola
     async def get_from_message_queue(self, idPartida: int, idJugador: int):
         if idPartida in self.message_queues and idJugador in self.message_queues[idPartida]:
-            while True:
-                try:
-                    data = await asyncio.wait_for(self.message_queues[idPartida][idJugador].get(),timeout=0.5)
-                    return data
-                except Exception:
-                    pass
+            # while True:
+            #     try:
+            #         data = await asyncio.wait_for(self.message_queues[idPartida][idJugador].get(),timeout=0.5)
+            #         return data
+            #     except Exception:
+            #         pass
+
+            # esto de abajo asi tal cual anda en simulación a mano, pero se tilda en el test (quizás por el multi threading) 
+            return await self.message_queues[idPartida][idJugador].get()
 
 
 
