@@ -140,6 +140,7 @@ async def websocket_endpoint(websocket: WebSocket, idPartida: int, idJugador: in
     try:
         while True:
             data = await websocket.receive_text()
+            await manager.put_in_message_queue(idPartida,idJugador,data)
     except WebSocketDisconnect:
         await manager.disconnect(idPartida, idJugador)
 

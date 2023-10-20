@@ -4,7 +4,7 @@ from db.models import *
 from .partidas import fin_partida
 from . import efectos_cartas
 from api.ws import manager
-
+import json
 
 
 cartas_router = APIRouter()
@@ -21,9 +21,10 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
             
             defendido = False
             if id_objetivo != None:
-                await manager.handle_data(event="jugar carta", idObjetivo=id_objetivo, idCarta=id_carta, idJugador=idJugador)
-                response = await manager.await_response(partida.id,id_objetivo)
-                defendido = response['defendido'] 
+                await manager.handle_data(event="jugar carta", idPartida=partida.id, idObjetivo=id_objetivo, idCarta=id_carta, idJugador=idJugador)
+                response = await manager.get_from_message_queue(partida.id,id_objetivo)
+                response = json.loads(response) #hay que parsear el json
+                defendido = response['defendido']
                 if defendido: 
                     #Descarto la carta del jugador que se defendio
                     Jugador[id_objetivo].cartas.remove(response['idCarta'])
