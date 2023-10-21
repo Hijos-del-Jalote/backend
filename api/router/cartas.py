@@ -5,7 +5,7 @@ from .partidas import fin_partida
 from . import efectos_cartas
 from api.ws import manager
 import json
-
+import time
 
 cartas_router = APIRouter()
 
@@ -22,29 +22,50 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
             defendido = False
             if id_objetivo != None:
                 await manager.handle_data(event="jugar carta", idPartida=partida.id, idObjetivo=id_objetivo, idCarta=id_carta, idJugador=idJugador)
+                
                 response = await manager.get_from_message_queue(partida.id,id_objetivo)
                 response = json.loads(response) #hay que parsear el json
                 defendido = response['defendido']
-                if defendido: 
-                    #Descarto la carta del jugador que se defendio
-                    Jugador[id_objetivo].cartas.remove(response['idCarta'])
-                    #Devuelvo datos desde la perspectivo del que se defendio, preguntar.
-                    await manager.handle_data(event="jugar defensa", idObjetivo=idJugador, idCarta=response['idCarta'], idJugador=id_objetivo)                   
+                
+                timeout = time.time() + 60 #Le doy un minuto al usuario para que juege su carta de defensa
+                while time.time()<timeout and defendido:
                     
-                elif not defendido:
-                    match carta.template_carta.nombre: 
+                    response = json.loads(response) #hay que parsear el json
+                    defendido = response['defendido']
+                    #Acá corroboro que se juege la defensa contra la carta que corresponde
+                    match Carta[response['idCarta']].template_carta.nombre: 
+                        case "Nada de barbacoas":
+                            if carta.template_carta.nombre != "Lanzallamas":
+                                await manager.handle_data(event="defensa erronea", idPartida=partida.id, idJugador=id_objetivo, msg="'Nada de barbacoas' es solo contra 'Lanzallamas'!")
+                                defendido = False
+                                                                
+                        case "Aqui estoy bien":
+                            if carta.template_carta.nombre not in ["Cambio de lugar", "Mas vale que corras"]:
+                                await manager.handle_data(event="defensa erronea", idPartida=partida.id, idJugador=id_objetivo, msg="'Aqui estoy bien' es solo contra 'Cambio de lugar' o 'Mas vale que corras'!")
+                                defendido = False
+                        case _:
+                            #Descarto la carta del jugador que se defendio
+                            Jugador[id_objetivo].cartas.remove(response['idCarta'])
+                            #Devuelvo datos desde la perspectivo del que se defendio, preguntar.
+                            await manager.handle_data(event="jugar defensa", idObjetivo=idJugador, idCarta=response['idCarta'], idJugador=id_objetivo)    
+                            break               
                     
-                        case "Lanzallamas":
-                            efectos_cartas.efecto_lanzallamas(id_objetivo)
-                        case "Vigila tus espaldas":
-                            efectos_cartas.vigila_tus_espaldas(partida)
-                        case "Cambio de lugar":
-                            print("here")
-                            efectos_cartas.cambio_de_lugar(carta.jugador, Jugador[id_objetivo])
-                        case "Mas vale que corras":
-                            efectos_cartas.mas_vale_que_corras(carta.jugador, Jugador[id_objetivo])
-                        case "Puerta trancada":
-                            efectos_cartas.puerta_trancada(carta.jugador, Jugador[id_objetivo])
+                    response = await manager.get_from_message_queue(partida.id,id_objetivo)
+                    
+            if not defendido:
+                match carta.template_carta.nombre: 
+                
+                    case "Lanzallamas":
+                        efectos_cartas.efecto_lanzallamas(id_objetivo)
+                    case "Vigila tus espaldas":
+                        efectos_cartas.vigila_tus_espaldas(partida)
+                    case "Cambio de lugar":
+                        print("here")
+                        efectos_cartas.cambio_de_lugar(carta.jugador, Jugador[id_objetivo])
+                    case "Mas vale que corras":
+                        efectos_cartas.mas_vale_que_corras(carta.jugador, Jugador[id_objetivo])
+                    case "Puerta trancada":
+                        efectos_cartas.puerta_trancada(carta.jugador, Jugador[id_objetivo])
 
                 
                     
