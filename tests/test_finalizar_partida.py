@@ -63,3 +63,6 @@ async def test_finalizar_partida(cleanup_db_after_test):
         
         with db_session:
             assert Partida.get(id=partida.id).finalizada == True
+            assert len(Partida.get(id=partida.id).jugadores)==0
+            for c in Partida.get(id=partida.id).cartas:
+                assert c.jugador == None

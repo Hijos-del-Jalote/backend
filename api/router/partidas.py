@@ -29,7 +29,7 @@ async def unir_jugador(idPartida:int, idJugador:int):
         if db.Partida.exists(id=idPartida) & db.Jugador.exists(id=idJugador):
             if not db.Jugador[idJugador].partida:
                 partida = db.Partida[idPartida].jugadores.add(db.Jugador[idJugador])
-                db.Jugador[idJugador].isHost=False
+                db.Jugador[idJugador].isHost = False
             else:
                 raise HTTPException(status_code=400, detail="Jugador already in Partida")
         else:
@@ -160,6 +160,7 @@ async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la
                 partida.finalizada = True
                 for jugador in  partida.jugadores:
                     jugador.partida = None
+                    jugador.cartas.clear()
                 db.commit()
                 await manager.handle_data(event="finalizar", idPartida=idPartida, 
                                         winners=winners[0], winning_team=winners[1])
