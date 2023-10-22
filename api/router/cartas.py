@@ -26,12 +26,13 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                 response = await manager.get_from_message_queue(partida.id,id_objetivo)
                 response = json.loads(response) #hay que parsear el json
                 defendido = response['defendido']
-                
+                print(f"Llego response: {response}")
                 if defendido:
                     #Descarto la carta del jugador que se defendio
-                    Jugador[id_objetivo].cartas.remove(response['idCarta'])
+                    cartaElim = Carta.get(id=response['idCarta'])
+                    Jugador[id_objetivo].cartas.remove(cartaElim)
                     #Devuelvo datos desde la perspectivo del que se defendio.
-                    await manager.handle_data(event="jugar defensa", idObjetivo=idJugador, idCarta=response['idCarta'], idJugador=id_objetivo, template_carta=Carta[response['idCarta']].template_carta.nombre, nombreJugador=Jugador[id_objetivo].nombre, nombreObjetivo=Jugador[idJugador].nombre)                
+                    await manager.handle_data(event="jugar defensa",idPartida=partida.id, idObjetivo=idJugador, idCarta=response['idCarta'], idJugador=id_objetivo, template_carta=Carta[response['idCarta']].template_carta.nombre, nombreJugador=Jugador[id_objetivo].nombre, nombreObjetivo=Jugador[idJugador].nombre)                
                     
                     
             if not defendido:
