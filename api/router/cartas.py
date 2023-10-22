@@ -10,7 +10,7 @@ import time
 cartas_router = APIRouter()
 
 @cartas_router.post("/jugar", status_code=200)
-async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
+async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
     with db_session:
         carta = Carta.get(id=id_carta)
         if carta and carta.jugador:
@@ -20,7 +20,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None):
             idJugador = carta.jugador.id
             
             defendido = False
-            if id_objetivo != None:
+            if id_objetivo != None and not test:
                 await manager.handle_data(event="jugar carta", idPartida=partida.id, idObjetivo=id_objetivo, idCarta=id_carta, idJugador=idJugador, template_carta=carta.template_carta.nombre, nombreJugador=Jugador[idJugador].nombre, nombreObjetivo=Jugador[id_objetivo].nombre)
                 
                 response = await manager.get_from_message_queue(partida.id,id_objetivo)
