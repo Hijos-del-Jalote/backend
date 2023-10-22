@@ -63,7 +63,7 @@ class ConnectionManager:
 
 
 
-    async def handle_data(self, event: str, idPartida: int, idJugador = -1, winners = [], winning_team = "", idObjetivo = -1, idCarta = -1, msg=""):
+    async def handle_data(self, event: str, idPartida: int, idJugador = -1, winners = [], winning_team = "", idObjetivo = -1, idCarta = -1, msg="", template_carta="", nombreJugador="", nombreObjetivo=""):
 
         
         match event:
@@ -80,14 +80,11 @@ class ConnectionManager:
                 data = build_dict("finalizar", fin_partida_respond(idPartida, winners, winning_team).model_dump_json())
                 await self.broadcast(data, idPartida)
             case "jugar carta":
-                data = build_dict("jugar_carta", JugarCartaData(idObjetivo=idObjetivo, idCarta=idCarta, idJugador=idJugador).model_dump_json())
+                data = build_dict("jugar_carta", JugarCartaData(idObjetivo=idObjetivo, idCarta=idCarta, idJugador=idJugador, template_carta=template_carta, nombreJugador=nombreJugador, nombreObjetivo=nombreObjetivo).model_dump_json())
                 await self.broadcast(data, idPartida)
             case "jugar defensa":
-                data = build_dict("jugar_resp", JugarCartaData(idObjetivo=idObjetivo, idCarta=idCarta, idJugador=idJugador).model_dump_json())
+                data = build_dict("jugar_resp", JugarCartaData(idObjetivo=idObjetivo, idCarta=idCarta, idJugador=idJugador, template_carta=template_carta, nombreJugador=nombreJugador, nombreObjetivo=nombreObjetivo).model_dump_json())
                 await self.broadcast(data, idPartida)
-            case "defensa erronea":
-                data = build_dict("defensa_erronea", msg)
-                await self.personal_msg(data, idPartida, idJugador)
             case "fin turno jugar":
                 data = build_dict("fin_turno_jugar", get_partida(idPartida).model_dump_json())
                 await self.broadcast(data, idPartida)

@@ -38,6 +38,9 @@ class FinPartidaResponse(BaseModel):
     winners: Optional[List[int]]
 
 class JugarCartaData(BaseModel):
+    idJugador: int
     idObjetivo: int
     idCarta: int
-    idJugador: int
+    template_carta: str
+    nombreJugador: str
+    nombreObjetivo: str
