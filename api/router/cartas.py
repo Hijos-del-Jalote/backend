@@ -5,7 +5,7 @@ from .partidas import fin_partida
 from . import efectos_cartas
 from api.ws import manager
 import json
-import time
+from db.cartas_session import robar_carta
 
 cartas_router = APIRouter()
 
@@ -31,6 +31,9 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                     #Descarto la carta del jugador que se defendio
                     cartaElim = Carta.get(id=response['idCarta'])
                     Jugador[id_objetivo].cartas.remove(cartaElim)
+                    commit()
+                    robar_carta(id_objetivo)
+                    
                     #Devuelvo datos desde la perspectivo del que se defendio.
                     await manager.handle_data(event="jugar defensa",idPartida=partida.id, idObjetivo=idJugador, idCarta=response['idCarta'], idJugador=id_objetivo, template_carta=Carta[response['idCarta']].template_carta.nombre, nombreJugador=Jugador[id_objetivo].nombre, nombreObjetivo=Jugador[idJugador].nombre)                
                     

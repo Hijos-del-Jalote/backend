@@ -1,16 +1,12 @@
-import pytest
-import httpx
-from db.partidas_session import get_partida, fin_partida_respond
 from api.api import app
 from fastapi.testclient import TestClient
 from pony.orm import db_session, commit
 from db.models import Jugador,Partida
-from tests.test_newplayer import random_user
 from api.ws import manager
 import json
 from typing import List
 import asyncio
-from .test_robar_carta import vaciar_manos
+from unittest.mock import AsyncMock, patch
 
 async def test_finalizar_partida(cleanup_db_after_test):
     client1 = TestClient(app)
@@ -49,13 +45,27 @@ async def test_finalizar_partida(cleanup_db_after_test):
         idcarta = list(jugadorActual.cartas)[0].id
         commit()
         assert partida.finalizada == False
-        
+    
+    async def fake_get_from_message_queue(id_partida, id_objetivo):
+        # Simular una respuesta que se esperaría
+        response_data = {
+            "defendido": False,
+            "idCarta": 1  
+        }
+        return json.dumps(response_data)
         
     with client1.websocket_connect(f"ws://localhost:8000/partidas/{partida.id}/ws?idJugador={idlacosa}") as websocket:
-        
-        response2 = client2.post(f'cartas/jugar?id_carta={idcarta}&id_objetivo={idlacosa}')
+        while len(manager.active_connections.get(partida.id, {})) != 1:
+            await asyncio.sleep(0.1)
+
+        with patch("api.ws.manager.get_from_message_queue", new_callable=AsyncMock) as mock_get_from_message_queue:
+            mock_get_from_message_queue.side_effect = fake_get_from_message_queue
+            response2 = client2.post(f'cartas/jugar?id_carta={idcarta}&id_objetivo={idlacosa}')
+
         assert(response2.status_code == 200)
 
+        websocket.receive_json() #ignoro los dos primeros json que se mandan
+        websocket.receive_json()
         response = websocket.receive_json()
         # {"event": "finalizar", "data": json.dumps({'isHumanoTeamWinner': True, 'winners': sorted(ganadores)})}
         assert response == {"event": "finalizar", "data": json.dumps({'isHumanoTeamWinner': True, 'winners': sorted(ganadores)},

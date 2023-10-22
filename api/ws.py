@@ -89,7 +89,6 @@ class ConnectionManager:
             case "fin turno jugar":
                 data = build_dict("fin_turno_jugar", get_partida(idPartida).model_dump_json())
                 await self.broadcast(data, idPartida)
-                print("se envio el turno jugar")
             case "analisis":
                 data = build_dict("analisis", get_mano_jugador(idObjetivo))
                 await self.personal_msg(data,idPartida,idJugador)
