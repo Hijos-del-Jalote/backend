@@ -48,6 +48,8 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                         efectos_cartas.mas_vale_que_corras(carta.jugador, Jugador[id_objetivo])
                     case "Puerta trancada":
                         efectos_cartas.puerta_trancada(carta.jugador, Jugador[id_objetivo])
+                    case "Analisis":
+                        manager.handle_data("analisis",partida.id,idJugador,idObjetivo=id_objetivo)
 
                     
                     

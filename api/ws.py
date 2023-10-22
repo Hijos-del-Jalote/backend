@@ -4,6 +4,7 @@ from .router.schemas import *
 from db.models import *
 from db.partidas_session import get_partida, fin_partida_respond, get_jugadores_partida
 from db.jugadores_session import get_abandonarlobby_data
+from db.cartas_session import get_mano_jugador
 import json
 import asyncio
 
@@ -89,7 +90,9 @@ class ConnectionManager:
                 data = build_dict("fin_turno_jugar", get_partida(idPartida).model_dump_json())
                 await self.broadcast(data, idPartida)
                 print("se envio el turno jugar")
-
+            case "analisis":
+                data = build_dict("analisis", get_mano_jugador(idObjetivo))
+                await self.personal_msg(data,idPartida,idJugador)
             case _:
                 print("El resto")
 

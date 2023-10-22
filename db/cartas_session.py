@@ -98,3 +98,12 @@ def robar_carta(idJugador: int):
                 carta = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).random(1)
             agregar_carta_en_mano(jugador.cartas, carta)
 
+@db_session
+def get_mano_jugador(idJugador: int):
+    with db_session:
+        jugador: Jugador = Jugador.get(id=idJugador)
+        cartas = jugador.cartas
+        list = []
+        for carta in cartas:
+            list.append(carta.template_carta.nombre)
+    return list
