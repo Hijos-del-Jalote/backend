@@ -37,4 +37,10 @@ class FinPartidaResponse(BaseModel):
     isHumanoTeamWinner: Optional[bool]
     winners: Optional[List[int]]
 
-
+class JugarCartaData(BaseModel):
+    idJugador: int
+    idObjetivo: int
+    idCarta: int
+    template_carta: str
+    nombreJugador: str
+    nombreObjetivo: str

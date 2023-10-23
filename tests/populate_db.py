@@ -3,6 +3,7 @@ from pony.orm import db_session, count
 from db.models import *
 from tests.test_newplayer import random_user
 import random
+from db.cartas_session import crear_templates_cartas
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #  
 # Si va a usar este código agregue sus propios jugadores y partidas, no toque nada de lo que ya está  #
@@ -48,9 +49,7 @@ def load_partidas():
 
 def load_templates():
     with db_session:
-        if count(TemplateCarta.select()) == 0:
-            carta_vacia = TemplateCarta(nombre="Cuarentena",
-                                         descripcion="C", tipo=Tipo_Carta.obstaculo)
+        crear_templates_cartas()
 
 def load_cartas():
     # (id,descartada, template, partida)

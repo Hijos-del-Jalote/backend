@@ -27,7 +27,7 @@ def test_efecto_puerta_trancada(cleanup_db_after_test):
         carta = Carta(descartada=False, template_carta=template_carta, partida=partida, jugador=jugador1)
         db.commit()
         #Jugar carta
-        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}')
+        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}&test=True')
         assert(response.status_code == 200)
         #Traigo los jugadores.
         response_jugador1 = client.get(f'jugadores/{jugador1.id}')
@@ -46,7 +46,7 @@ def test_efecto_puerta_trancada(cleanup_db_after_test):
         partida.turnoActual = 0
         db.commit()       
         #Jugar carta
-        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador3.id}') 
+        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador3.id}&test=True') 
         assert(response.status_code == 200)
         #Traigo los jugadores.
         response_jugador1 = client.get(f'jugadores/{jugador1.id}')
