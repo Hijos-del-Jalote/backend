@@ -78,6 +78,7 @@ async def obtener_partida(id: int) -> PartidaResponse:
                                 detail="Partida no encontrada")
     return partidaResp
 
+
 @partidas_router.put("/iniciar", status_code=status.HTTP_200_OK)
 async def iniciar_partida(idPartida: int):
     with db_session:

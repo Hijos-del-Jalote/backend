@@ -5,7 +5,8 @@ from .partidas import fin_partida
 from . import efectos_cartas
 from api.ws import manager
 import json
-from db.cartas_session import robar_carta
+from db.cartas_session import *
+
 
 cartas_router = APIRouter()
 
@@ -80,3 +81,9 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
 
         else:
             raise HTTPException(status_code=400, detail="No existe el id de la carta ó jugador que la tenga")
+
+
+@cartas_router.put("/descartar_carta/{idCarta}", status_code=200)
+def descartar_carta_put(idCarta: int):
+    descartar_carta(idCarta)
+   

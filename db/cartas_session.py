@@ -98,6 +98,7 @@ def robar_carta(idJugador: int):
                 carta = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).random(1)
             agregar_carta_en_mano(jugador.cartas, carta)
 
+            
 @db_session
 def get_mano_jugador(idJugador: int):
     with db_session:
@@ -107,3 +108,29 @@ def get_mano_jugador(idJugador: int):
         for carta in cartas:
             list.append(carta.template_carta.nombre)
     return list
+
+
+@db_session
+def descartar_carta(idCarta: int):
+    with db_session:
+        carta = Carta.get(id=idCarta)
+        jugador = carta.jugador
+        if not jugador or not carta:
+                raise HTTPException(status_code=400,detail="Jugador o carta no encontrados")
+        elif carta.template_carta.nombre == "La cosa":
+            raise HTTPException(status_code=400,detail="No se puede descartar la carta La cosa")
+        elif len(jugador.cartas) == 4:
+            raise HTTPException(status_code=400,detail="No se puede descartar con 4 cartas en la mano")
+        elif carta.template_carta.nombre == "Infectado" and jugador.Rol == Rol.infectado:
+            cartas_infectado = len(select (c for c in jugador.cartas if c.template_carta.nombre== "Infectado"))
+            if cartas_infectado > 1:
+                jugador.cartas.remove(carta)
+                carta.descartada=True
+            else:
+                raise HTTPException(status_code=400,detail="No se puede descartar la carta Infectado")
+        else:
+            if carta in jugador.cartas:
+                carta.descartada=True
+                jugador.cartas.remove(carta)
+            else:
+                raise HTTPException(status_code=404,detail="La carta no está en la mano del jugador")
