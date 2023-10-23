@@ -4,8 +4,9 @@ from db.models import *
 from .partidas import fin_partida
 from . import efectos_cartas
 from ..ws import manager
-import json
-from db.cartas_session import intercambiar_cartas
+from db.cartas_session import *
+
+
 
 cartas_router = APIRouter()
 
@@ -91,3 +92,9 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Carta o jugador no encontrados")
         
     await manager.handle_data("fin_de_turno",carta.partida.id)
+
+
+@cartas_router.put("/descartar_carta/{idCarta}", status_code=200)
+def descartar_carta_put(idCarta: int):
+    descartar_carta(idCarta)
+    
