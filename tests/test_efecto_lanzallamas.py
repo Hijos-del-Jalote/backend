@@ -27,13 +27,13 @@ def test_efecto_lanzallamas(cleanup_db_after_test):
         carta = Carta(descartada=False, template_carta=template_carta, partida=partida, jugador=jugador1)
         db.commit()
         #Jugar carta contra el jugador 2
-        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}')
+        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}&test=True')
         assert(response.status_code == 200)
         #Jugar carta sin pasar objetivo
         response = client.post(f'cartas/jugar?id_carta={carta.id}')
         assert(response.status_code == 400)
         #Jugar carta pasando objetivo inexistente
-        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={10000000000}')
+        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={10000000000}&test=True')
         assert(response.status_code == 400)
         
         if l:

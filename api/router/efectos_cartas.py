@@ -113,7 +113,7 @@ def cambio_de_lugar(jugador1, jugador2):
             ady = son_adyacentes(jugador1, jugador2)
             #ACA SE ASUME QUE SI SENTIDO=TRUE EL SENTIDO DE LA PARTIDA ES ANTIHORARIO, OSEA (POSICION+1 MOD CANT) CORRESPONDE BLOQUEO DE DERECHA Y (POSICION-1 MOD CANT) CORRESPONDE BLOQUEO DE IZQUIERDA 
 
-            if (not jugador2.cuarentena) and ((jugador1.Posicion+1 % cant == jugador2.Posicion and not jugador1.blockDer) or (jugador1.Posicion-1 % cant == jugador2.Posicion and not jugador1.blockIzq)):
+            if ady[0] and (not jugador2.cuarentena) and ((ady[1]==1 and not jugador1.blockDer) or (ady[1]==0 and not jugador1.blockIzq) or (ady[1]==2 and (not jugador1.blockIzq) and (not jugador1.blockDer))):
                 intercambiar_posiciones(jugador1, jugador2)
 
             else:

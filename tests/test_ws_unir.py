@@ -8,6 +8,7 @@ from db.models import Jugador,Partida
 from tests.test_newplayer import random_user
 from api.ws import manager
 from .conftest import *
+import asyncio
 
 
 async def test_unir_jugador_ws(setup_db_before_test):
@@ -18,6 +19,9 @@ async def test_unir_jugador_ws(setup_db_before_test):
     response1 = client1.post(f'jugadores?nombre=FireAndBlood')
     
     with client1.websocket_connect(f"ws://localhost:8000/partidas/2/ws?idJugador={response1.json()['id']}") as websocket:
+        while len(manager.active_connections.get(2, {})) != 1:
+            await asyncio.sleep(0.1)
+        
         assert len(manager.active_connections[2]) == 1
 
         # mandar un post con otro cliente: 
@@ -37,6 +41,8 @@ async def test_iniciar_partida_ws(cleanup_db_after_test):
     partida = 2
 
     with client1.websocket_connect(f"ws://localhost:8000/partidas/2/ws?idJugador={response.json()['id']}") as websocket:
+        while len(manager.active_connections.get(2, {})) != 1:
+            await asyncio.sleep(0.1)
         assert len(manager.active_connections[2]) == 1
 
         # mandar un post con otro cliente:

@@ -6,6 +6,7 @@ from api.ws import manager
 from .conftest import *
 from db.partidas_session import get_jugadores_partida
 import time
+import asyncio
 
 client = TestClient(app)
 
@@ -15,10 +16,12 @@ async def test_abandonar_lobby_nohost(setup_db_before_test):
 
     
     with client1.websocket_connect("ws://localhost:8000/partidas/2/ws?idJugador=7") as websocket:
-        assert len(manager.active_connections[2]) == 1
+        while len(manager.active_connections.get(2, {})) != 1:
+            await asyncio.sleep(0.1)
 
+        assert len(manager.active_connections[2]) == 1
         # mandar un post con otro cliente: 
-        client2.put("jugadores/6/abandonar_lobby")
+        client1.put("jugadores/6/abandonar_lobby")
 
         # Esperar la respuesta del websocket en el cliente1:
         response = websocket.receive_json()
@@ -50,10 +53,12 @@ async def test_abandonar_lobby_host(cleanup_db_after_test):
 
     
     with client1.websocket_connect("ws://localhost:8000/partidas/2/ws?idJugador=7") as websocket:
-        assert len(manager.active_connections[2]) == 1
+        while len(manager.active_connections.get(2, {})) != 1:
+            await asyncio.sleep(0.1)
 
+        assert len(manager.active_connections[2]) == 1
         # mandar un post con otro cliente: 
-        client2.put("jugadores/5/abandonar_lobby")
+        client1.put("jugadores/5/abandonar_lobby")
 
         # Esperar la respuesta del websocket en el cliente1:
         response = websocket.receive_json()
