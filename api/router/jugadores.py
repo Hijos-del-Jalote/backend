@@ -77,7 +77,11 @@ async def abandonar_lobby(id: int):
             
             if isHost:
                partida.delete()
-    
+               jugador.isHost = False
     
 
     return {"detail": "Partida abandonada con éxito"}
+
+
+            
+ 

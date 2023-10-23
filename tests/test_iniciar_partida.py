@@ -52,13 +52,17 @@ def test_iniciar_partida(cleanup_db_after_test):
         jugadores = list(partida.jugadores)
     assert partida.iniciada == True
 
-    # verifico que tengan posicion y rol por defecto
+    # verifico que tengan posicion , rol por defecto y el resto de atributos en default
     posiciones = set()
     cant_cosas = 0
     for jugador in jugadores:
         assert jugador.Posicion not in posiciones
         posiciones.add(jugador.Posicion)
         assert jugador.Rol == "Humano" or jugador.Rol == "La cosa"
+        assert jugador.isAlive == True
+        assert jugador.blockDer == False
+        assert jugador.blockIzq == False
+        assert jugador.cuarentena == False
         if jugador.Rol == "La cosa":
             cant_cosas += 1
 

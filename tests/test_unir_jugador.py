@@ -9,7 +9,7 @@ client = TestClient(app)
 
 
 def test_unir_jugador(cleanup_db_after_test):
-
+    
     with db_session:
         p = db.Partida(nombre="Partida", maxJug=5, minJug=1, sentido=0, iniciada=True)
         j = db.Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=True)
@@ -31,13 +31,13 @@ def test_unir_jugador(cleanup_db_after_test):
         no_existe_partida_response = client.post(f"partidas/unir?idPartida={ultima_id_partida+1}&idJugador={ultima_id_jugador}")
 
         assert no_existe_partida_response.status_code == 400
-        
-        j.partida = p
-        db.commit()
-        
-        jugador_en_partida = client.post(f"partidas/unir?idPartida={p.id}&idJugador={j.id}")
-       
-        assert jugador_en_partida.status_code == 400
-        
+    
+    
+    jugador_en_partida = client.post(f"partidas/unir?idPartida={p.id}&idJugador={j.id}")
+    assert jugador_en_partida.status_code == 400
+    with db_session:
+        j=Jugador.get(id=j.id)
+        p=Partida.get(id=p.id)
+        assert j.isHost==False
         p.delete()
         j.delete()
