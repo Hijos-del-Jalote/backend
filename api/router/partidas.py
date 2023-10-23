@@ -9,6 +9,7 @@ from random import randint
 from api.ws import manager
 from fastapi.websockets import *
 from typing import List
+import asyncio
 
 
 partidas_router = APIRouter()
@@ -133,11 +134,13 @@ async def finalizar_partida(id: int) -> EstadoPartida:
         for jugador in partida.jugadores:
             if jugador.isAlive == True:
                 jugadores.append(jugador)
+
                 commit()
             if len(jugadores) == 1: # o sea, hay ganadors
                 return EstadoPartida(finalizada=True, idGanador=jugadores[0].id)
             else:
                 return EstadoPartida(finalizada=False, idGanador=-1)
+
 
 @partidas_router.websocket("/{idPartida}/ws")
 async def websocket_endpoint(websocket: WebSocket, idPartida: int, idJugador: int):

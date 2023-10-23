@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from pony.orm import db_session
 from db.models import *
 from .partidas import fin_partida
@@ -61,18 +61,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
             carta.descartada=True
                 
 
-            if partida.sentido:
-                for i in range(1, len(partida.jugadores)):
-                    pos = (partida.turnoActual+i) % len(partida.jugadores)
-                    if Jugador.get(Posicion=pos, partida=partida).isAlive:
-                        partida.turnoActual = pos
-                        break
-            else:
-                for i in range(1, len(partida.jugadores)):
-                    pos = (partida.turnoActual-i) % len(partida.jugadores)
-                    if Jugador.get(Posicion=pos, partida=partida).isAlive:
-                        partida.turnoActual = pos
-                        break
+            
     
             await manager.handle_data(event="fin turno jugar", idPartida=partida.id)                   
             # por ahora aca porque esto marca el fin del turno, desp lo pondre en intercambiar carta
@@ -83,7 +72,56 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
             raise HTTPException(status_code=400, detail="No existe el id de la carta ó jugador que la tenga")
 
 
+@cartas_router.put(path="/{idCarta}/intercambiar")
+async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
+
+    with db_session:
+        carta: Carta = Carta.get(id=idCarta)
+        jugObj: Jugador = Jugador.get(id=idObjetivo)
+        jugador = Jugador.get(id=carta.jugador.id)
+
+        if carta and jugObj:
+            if not jugador:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="No puede intercambiar una carta del mazo")
+            else:
+                response = await manager.handle_data("intercambiar", carta.partida.id, jugador.id,
+                                                     idCarta=idCarta, idObjetivo=idObjetivo)
+                
+                if response['aceptado']:
+                    jo_carta: Carta = Carta.get(id=response['data'])
+                    
+                    if carta.template_carta.nombre == "Infectado":
+                        jugObj.Rol = Rol.infectado
+
+                    if jo_carta.template_carta == "Infectado":
+                        jugador.Rol = Rol.infectado
+
+                    intercambiar_cartas(idCarta, response['data'])
+                    await manager.broadcast({'event': "intercambio exitoso"}, carta.partida.id)
+
+                else:
+                    await manager.broadcast({'event': "intercambio rechazado"}, carta.partida.id)
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Carta o jugador no encontrados")
+
+        partida = jugador.partida
+        if partida.sentido:
+                for i in range(1, len(partida.jugadores)):
+                    pos = (partida.turnoActual+i) % len(partida.jugadores)
+                    if Jugador.get(Posicion=pos, partida=partida).isAlive:
+                        partida.turnoActual = pos
+                        break
+        else:
+            for i in range(1, len(partida.jugadores)):
+                pos = (partida.turnoActual-i) % len(partida.jugadores)
+                if Jugador.get(Posicion=pos, partida=partida).isAlive:
+                    partida.turnoActual = pos
+                    break
+        commit()         
+    await manager.handle_data("fin_de_turno",carta.partida.id)
+
+
 @cartas_router.put("/descartar_carta/{idCarta}", status_code=200)
 def descartar_carta_put(idCarta: int):
     descartar_carta(idCarta)
-   

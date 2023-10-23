@@ -110,6 +110,30 @@ def get_mano_jugador(idJugador: int):
     return list
 
 
+
+def intercambiar_cartas(idCarta1: int, idCarta2: int):
+    with db_session:
+        carta1 = Carta.get(id=idCarta1)
+        carta2 = Carta.get(id=idCarta2)
+
+        jugador1 = carta1.jugador
+
+        carta1.jugador = carta2.jugador
+        carta2.jugador = jugador1
+
+def carta_data(idCarta: int):
+    # {'id': int, 'descartada': bool, 'template_carta': str, 'jugador': int, 'partida': int}
+    with db_session:
+        carta = Carta.get(id=idCarta)
+    return carta.to_dict(with_collections=True)
+
+# def can_trade(idJug1: int, idJug2: int):
+#     with db_session:
+#         jugador1: Jugador = Jugador.get(idJug1)
+#         jugador2: Jugador = Jugador.get(idJug2)
+
+#         if 
+
 @db_session
 def descartar_carta(idCarta: int):
     with db_session:

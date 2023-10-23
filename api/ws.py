@@ -4,9 +4,9 @@ from .router.schemas import *
 from db.models import *
 from db.partidas_session import get_partida, fin_partida_respond, get_jugadores_partida
 from db.jugadores_session import get_abandonarlobby_data
-from db.cartas_session import get_mano_jugador
-import json
+from db.cartas_session import carta_data, get_mano_jugador
 import asyncio
+import json
 
 class ConnectionManager:
     def __init__(self):
@@ -64,7 +64,9 @@ class ConnectionManager:
 
 
 
-    async def handle_data(self, event: str, idPartida: int, idJugador = -1, winners = [], winning_team = "", idObjetivo = -1, idCarta = -1, msg="", template_carta="", nombreJugador="", nombreObjetivo=""):
+    async def handle_data(self, event: str, idPartida: int, idJugador = -1, winners = [],
+                           winning_team = "", idObjetivo = -1, idCarta = -1, msg="",
+                             template_carta="", nombreJugador="", nombreObjetivo=""):
 
         
         match event:
@@ -79,6 +81,24 @@ class ConnectionManager:
                 await self.broadcast(data,idPartida)
             case "finalizar":
                 data = build_dict("finalizar", fin_partida_respond(idPartida, winners, winning_team).model_dump_json())
+                await self.broadcast(data, idPartida)
+            case "intercambiar":
+                # mando al jugador objetivo los datos de la carta
+                data = build_dict("intercambio_request", carta_data(idCarta))
+                await self.personal_msg(data,idPartida,idObjetivo)
+
+                # aviso a los clientes que se está llevando a cabo un intercambio
+                data2 = build_dict("intercambio", {'idJugador1': idJugador,
+                                                   'idJugador2': idObjetivo})
+                await self.broadcast(data2, idPartida)
+                
+                #espero respuesta del jugador objetivo
+                response = await self.get_from_message_queue(idPartida, idObjetivo)
+                json_data = json.loads(response)
+                return json_data
+            
+            case "fin_de_turno": # si aca devolvemos la partida entera se podria unir en un solo evento con "unir"
+                data = build_dict("fin_de_turno", get_partida(idPartida).model_dump_json())
                 await self.broadcast(data, idPartida)
             case "jugar carta":
                 data = build_dict("jugar_carta", JugarCartaData(idObjetivo=idObjetivo, idCarta=idCarta, idJugador=idJugador, template_carta=template_carta, nombreJugador=nombreJugador, nombreObjetivo=nombreObjetivo).model_dump_json())
