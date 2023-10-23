@@ -61,18 +61,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
             carta.descartada=True
                 
 
-            if partida.sentido:
-                for i in range(1, len(partida.jugadores)):
-                    pos = (partida.turnoActual+i) % len(partida.jugadores)
-                    if Jugador.get(Posicion=pos, partida=partida).isAlive:
-                        partida.turnoActual = pos
-                        break
-            else:
-                for i in range(1, len(partida.jugadores)):
-                    pos = (partida.turnoActual-i) % len(partida.jugadores)
-                    if Jugador.get(Posicion=pos, partida=partida).isAlive:
-                        partida.turnoActual = pos
-                        break
+            
     
             await manager.handle_data(event="fin turno jugar", idPartida=partida.id)                   
             # por ahora aca porque esto marca el fin del turno, desp lo pondre en intercambiar carta
@@ -115,7 +104,21 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                     await manager.broadcast({'event': "intercambio rechazado"}, carta.partida.id)
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Carta o jugador no encontrados")
-        
+
+        partida = jugador.partida
+        if partida.sentido:
+                for i in range(1, len(partida.jugadores)):
+                    pos = (partida.turnoActual+i) % len(partida.jugadores)
+                    if Jugador.get(Posicion=pos, partida=partida).isAlive:
+                        partida.turnoActual = pos
+                        break
+        else:
+            for i in range(1, len(partida.jugadores)):
+                pos = (partida.turnoActual-i) % len(partida.jugadores)
+                if Jugador.get(Posicion=pos, partida=partida).isAlive:
+                    partida.turnoActual = pos
+                    break
+        commit()         
     await manager.handle_data("fin_de_turno",carta.partida.id)
 
 
