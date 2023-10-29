@@ -6,7 +6,7 @@ from . import efectos_cartas
 from api.ws import manager
 import json
 from db.cartas_session import *
-
+from db.jugadores_session import es_siguiente
 
 cartas_router = APIRouter()
 
@@ -79,24 +79,31 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
         carta: Carta = Carta.get(id=idCarta)
         jugObj: Jugador = Jugador.get(id=idObjetivo)
         jugador = Jugador.get(id=carta.jugador.id)
-
+        commit()
         if carta and jugObj:
             if not jugador:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="No puede intercambiar una carta del mazo")
             else:
+                # checkear primeras instancias que solo involucran al jugador que inicia el intercambio
+                # (esto es así para no avisar al otro jugador de un intercambio a menos que este sea válido)
+
+                if carta.template_carta.nombre == "Infectado" and not puede_intercambiar_infectado(jugador,jugObj): 
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="Jugador 1 no puede intercambiar una carta de infectado")
+
+                if not es_siguiente(jugador,jugObj):
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="Sólo puede intercambiar con el siguiente jugador")
+
                 response = await manager.handle_data("intercambiar", carta.partida.id, jugador.id,
                                                      idCarta=idCarta, idObjetivo=idObjetivo)
                 
                 if response['aceptado']:
-                    jo_carta: Carta = Carta.get(id=response['data'])
+                    jo_carta: Carta = Carta.get(id=response['data'])    
                     
-                    if carta.template_carta.nombre == "Infectado":
-                        jugObj.Rol = Rol.infectado
-
-                    if jo_carta.template_carta == "Infectado":
-                        jugador.Rol = Rol.infectado
-
+                    corroborar_infección(jugador,jugObj,carta,jo_carta)
+                    
                     intercambiar_cartas(idCarta, response['data'])
                     await manager.broadcast({'event': "intercambio exitoso"}, carta.partida.id)
 

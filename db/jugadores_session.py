@@ -13,3 +13,10 @@ def get_abandonarlobby_data(idJugador: int, idPartida: int):
     
     return {"host": isHost,
             "jugadores": jugadores}
+
+def es_siguiente(jugador1: Jugador, jugador2: Jugador):
+    with db_session:
+        if jugador1.partida.sentido:
+            return ((jugador1.Posicion + 1) % len(jugador1.partida.jugadores)) == jugador2.Posicion
+        else:
+            return ((jugador1.Posicion - 1) % len(jugador1.partida.jugadores)) == jugador2.Posicion

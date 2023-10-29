@@ -114,3 +114,14 @@ def test_intercambiar_rechazado(setup_db_before_test, cleanup_db_after_test):
     
     
     assert response.status_code == 200
+
+def test_intercambiar_noady(setup_db_before_test, cleanup_db_after_test):
+    client = TestClient(app)
+
+    asignar_pos()
+    dar_cartas()
+
+    response = client.put(f'/cartas/1000/intercambiar?idObjetivo=3')
+
+    assert response.status_code == 400
+    assert response.json() == {'detail': "Sólo puede intercambiar con el siguiente jugador"}
