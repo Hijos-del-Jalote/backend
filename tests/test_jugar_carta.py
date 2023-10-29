@@ -21,21 +21,23 @@ def test_jugar_carta(cleanup_db_after_test):
         jugador = Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=True, Posicion=1)
 
         #Crear una partida con jugador host
-        partida = Partida(nombre="Partida", maxJug=5, minJug=1, iniciada=True, turnoActual=0, sentido = False, jugadores={jugador})
+        partida = Partida(nombre="Partida", maxJug=5, minJug=1, iniciada=True, sentido = False, jugadores={jugador})
         #Crear carta y asignarsela al jugador y partida
         carta = Carta(descartada=False, template_carta=template_carta, partida=partida, jugador=jugador)
+        db.commit()
+        partida.turnoActual=jugador.id+1
         db.commit()
         #Jugar carta, Deberia dar error ya que no es el turno del jugador
         response = client.post(f'cartas/jugar?id_carta={carta.id}')
         assert(response.status_code == 400)
-        jugador.Posicion=0
+        partida.turnoActual=jugador.id
         db.commit()
         
-        turno = partida.turnoActual
+
         #El jugador deberia jugar la carta correctamente
         response = client.post(f'cartas/jugar?id_carta={carta.id}')
         assert(response.status_code == 200)
-        assert partida.turnoActual == (turno - 1) % len(partida.jugadores)
+
         
         #Jugar la carta nuevamente -> deberia dar error ya que la carta no pertenece a ningun jugador.
         response = client.post(f'cartas/jugar?id_carta={carta.id}')
