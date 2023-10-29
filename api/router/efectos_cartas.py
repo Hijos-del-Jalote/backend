@@ -11,36 +11,15 @@ from fastapi import HTTPException
 def son_adyacentes(jugador1, jugador2):
     if jugador1 and jugador2 and jugador1.partida == jugador2.partida:
         partida = jugador1.partida
-        cant = len(partida.jugadores)
-        #flag para saber si encontramos.
-        encontradoDer, encontradoIzq  = False, False
-
-        #Busco por derecha
-        for i in range(1, len(partida.jugadores)):
-            pos_sig = (jugador1.Posicion+i) % cant
-            jug_sig = Jugador.get(Posicion=pos_sig, partida=partida)
-            if jug_sig.isAlive:
-                if jug_sig.Posicion == jugador2.Posicion:
-                    encontradoDer = True
-                break
-
-        #Busco por izquierda
-        for i in range(1, len(partida.jugadores)):
-            pos_ant = (jugador1.Posicion-i) % cant
-            jug_ant = Jugador.get(Posicion=pos_ant, partida=partida)
-            if jug_ant.isAlive:
-                if jug_ant.Posicion == jugador2.Posicion:
-                    encontradoIzq = True
-                break
-        
+        cant = partida.cantidadVivos
         #No se encontro
-        if (not encontradoIzq) and (not encontradoDer):
+        if (jugador1.Posicion != ((jugador2.Posicion-1) % cant)) and (jugador1.Posicion != ((jugador2.Posicion+1) % cant)):
             return (False, None)
         #Se encontro por la izquierda
-        elif (not encontradoDer) and encontradoIzq:
+        elif (jugador1.Posicion != ((jugador2.Posicion-1) % cant)) and (jugador1.Posicion == ((jugador2.Posicion+1) % cant)):
             return (True, 0)
         #Se encontro por la derecha
-        elif encontradoDer and (not encontradoIzq):
+        elif (jugador1.Posicion == ((jugador2.Posicion-1) % cant)) and (jugador1.Posicion != ((jugador2.Posicion+1) % cant)):
             return (True, 1)
         #Se encontro por ambos lados
         else:
@@ -49,13 +28,23 @@ def son_adyacentes(jugador1, jugador2):
     else:
         raise Exception("Los jugadores o no existen o no pertenecen a la misma partida")     
 
+def recalcular_posiciones(partida, pos_muerta):
+    for jugador in partida.jugadores:
+        if jugador.Posicion != None and jugador.Posicion > pos_muerta:
+            jugador.Posicion -= 1
+            db.commit()
+
 def efecto_lanzallamas(id_objetivo):
     with db_session:
         if (id_objetivo != None) & (Jugador.exists(id=id_objetivo)):
             objetivo = Jugador[id_objetivo]
+            recalcular_posiciones(objetivo.partida, objetivo.Posicion)
             objetivo.isAlive = False
+            objetivo.Posicion = None
+            objetivo.partida.cantidadVivos -= 1
             objetivo.cartas.clear()
             db.commit()
+            
         else:
             raise HTTPException(status_code=400, detail="Jugador objetivo No existe o No proporcionado")
             
@@ -109,7 +98,7 @@ def intercambiar_posiciones(jugador1, jugador2):
 def cambio_de_lugar(jugador1, jugador2):
     with db_session:
         if jugador1 and jugador2:
-            cant = len(jugador1.partida.jugadores)
+            cant = jugador1.partida.cantidadVivos
             ady = son_adyacentes(jugador1, jugador2)
             #ACA SE ASUME QUE SI SENTIDO=TRUE EL SENTIDO DE LA PARTIDA ES ANTIHORARIO, OSEA (POSICION+1 MOD CANT) CORRESPONDE BLOQUEO DE DERECHA Y (POSICION-1 MOD CANT) CORRESPONDE BLOQUEO DE IZQUIERDA 
 

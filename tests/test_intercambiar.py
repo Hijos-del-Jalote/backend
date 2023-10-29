@@ -17,6 +17,7 @@ def asignar_pos():
         Jugador[4].Posicion = 4
         commit()
         Jugador[1].partida.turnoActual=Jugador[1].id
+        Jugador[1].partida.cantidadVivos = 4
 
 def dar_cartas():
     with db_session:

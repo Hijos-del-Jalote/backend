@@ -20,6 +20,7 @@ def dar_cartas(nomcarta1: str, nomcarta2: str):
         commit()
         jugador1.Posicion = 1
         jugador1.partida.turnoActual = 1
+        jugador1.partida.cantidadVivos = 4
         commit()
         jugador2.Posicion = 2
         jugador3.Posicion = 3

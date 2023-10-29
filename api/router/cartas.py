@@ -108,17 +108,10 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
         partida = jugador.partida
         pos_actual = Jugador[partida.turnoActual].Posicion
         if partida.sentido:
-            for i in range(1, len(partida.jugadores)):
-                pos = (pos_actual+i) % len(partida.jugadores)
-                if Jugador.get(Posicion=pos, partida=partida).isAlive:
-                    partida.turnoActual = Jugador.get(Posicion=pos, partida=partida).id
-                    break
+            partida.turnoActual = Jugador.get(Posicion=(pos_actual+1)%partida.cantidadVivos, partida=partida).id
         else:
-            for i in range(1, len(partida.jugadores)):
-                pos = (pos_actual-i) % len(partida.jugadores)
-                if Jugador.get(Posicion=pos, partida=partida).isAlive:
-                    partida.turnoActual = Jugador.get(Posicion=pos, partida=partida).id
-                    break
+            partida.turnoActual = Jugador.get(Posicion=(pos_actual-1)%partida.cantidadVivos, partida=partida).id   
+                     
         commit()         
     await manager.handle_data("fin_de_turno",carta.partida.id)
 

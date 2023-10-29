@@ -96,7 +96,7 @@ async def iniciar_partida(idPartida: int):
         if len(partida.jugadores) > partida.maxJug or len(partida.jugadores) < partida.minJug: 
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="Partida no respeta limites jugadores")
-            
+        
         crear_templates_cartas()
         crear_mazo(partida)
         commit()
@@ -104,6 +104,7 @@ async def iniciar_partida(idPartida: int):
         partida.iniciada = True
         partida.turnoActual = random.choice(tuple(partida.jugadores)).id
         posicion = 0
+        partida.cantidadVivos = len(partida.jugadores)
         for jugador in partida.jugadores:
             for carta in jugador.cartas:
                 if carta.template_carta.nombre == "La cosa":
