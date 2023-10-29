@@ -5,7 +5,7 @@ from db.mazo_session import *
 from db.cartas_session import *
 from db.partidas_session import *
 from .schemas import *
-from random import randint
+import random
 from api.ws import manager
 from fastapi.websockets import *
 from typing import List
@@ -102,7 +102,7 @@ async def iniciar_partida(idPartida: int):
         commit()
         repartir_cartas(partida)
         partida.iniciada = True
-        partida.turnoActual = randint(0,len(partida.jugadores)-1)
+        partida.turnoActual = random.choice(tuple(partida.jugadores)).id
         posicion = 0
         for jugador in partida.jugadores:
             for carta in jugador.cartas:

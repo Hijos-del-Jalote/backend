@@ -26,9 +26,11 @@ def test_efecto_cambio_de_lugar(cleanup_db_after_test):
         #Crear un jugador que recibira el efecto
         jugador4 = Jugador(nombre="Gonza", isHost=False, isAlive=True, blockIzq=False, blockDer=False, Posicion=3)
         #Crear una partida con jugadores
-        partida = Partida(nombre="Partida", maxJug=5, minJug=1, sentido=False, iniciada=True, turnoActual=0, jugadores={jugador1, jugador2, jugador3, jugador4})
+        partida = Partida(nombre="Partida", maxJug=5, minJug=1, sentido=False, iniciada=True, jugadores={jugador1, jugador2, jugador3, jugador4})
         #Crear carta y asignarsela al jugador1 y partida
         carta = Carta(descartada=False, template_carta=template_carta, partida=partida, jugador=jugador1)
+        db.commit()
+        partida.turnoActual=jugador1.id
         db.commit()
         #Jugar carta
         response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}&test=True')
@@ -42,11 +44,10 @@ def test_efecto_cambio_de_lugar(cleanup_db_after_test):
         carta.jugador = jugador1
         db.commit()
         #Jugar carta nuevamente
-        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador3.id}&test=True')
+        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador4.id}&test=True')
         assert(response.status_code == 400)
         #Hacer que haya una puerta trancada de por medio
-        jugador2.Posicion = 1
-        jugador1.blockDer = True
+        jugador1.blockIzq = True
         carta.jugador = jugador1
         db.commit()
         #Jugar carta nuevamente
@@ -54,7 +55,7 @@ def test_efecto_cambio_de_lugar(cleanup_db_after_test):
         assert(response.status_code == 400)
         #Hacer que jugador objetivo este en cuarentena
         jugador2.cuarentena = True
-        jugador1.blockDer = False
+        jugador1.blockIzq = False
         carta.jugador = jugador1
         db.commit()
         #Jugar carta nuevamente
