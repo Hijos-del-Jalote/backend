@@ -125,3 +125,89 @@ def test_intercambiar_noady(setup_db_before_test, cleanup_db_after_test):
 
     assert response.status_code == 400
     assert response.json() == {'detail': "Sólo puede intercambiar con el siguiente jugador"}
+
+def test_intercambiar_infectadofail_j1(setup_db_before_test, cleanup_db_after_test):
+    client = TestClient(app)
+
+    asignar_pos()
+    dar_cartas()
+    with db_session:
+        Jugador[1].Rol = Rol.humano
+
+    response = client.put(f'/cartas/1000/intercambiar?idObjetivo=1')
+
+    assert response.status_code == 400
+    assert response.json() == {'detail': "Jugador 1 no puede intercambiar una carta de infectado"}
+
+async def test_intercambiar_infectadofail_j2(setup_db_before_test,cleanup_db_after_test): 
+    
+    client = TestClient(app)
+
+    asignar_pos()
+    dar_cartas()
+    with db_session:
+        Carta(id=1003,
+                        template_carta = "Infectado",
+                        jugador=Jugador[2],
+                        partida=Partida[1])
+        
+    cartaData = carta_data(1000)
+
+    with client.websocket_connect(f'ws://localhost:8000/partidas/1/ws?idJugador=2') as ws:
+
+        with patch("api.ws.manager.get_from_message_queue", new_callable=AsyncMock) as mock_get_from_message_queue:
+            mock_get_from_message_queue.side_effect = [json.dumps({"aceptado": True, "data": 1003}), json.dumps({"aceptado": False, "data": 1003})]
+            response = client.put(f'/cartas/1000/intercambiar?idObjetivo=2')
+        
+        response_ws = ws.receive_json()
+        assert response_ws == {'event': "intercambio_request",
+                       'data': cartaData}
+
+        response_ws = ws.receive_json()
+        assert response_ws == {'event': "intercambio",
+                               'data': {'idJugador1': 1,
+                                        'idJugador2': 2}}
+
+        response_ws = ws.receive_json()
+        assert response_ws == {'event': "Intercambio erróneo",
+                               'data': "No puedes intercambiar una carta de infectado"}
+
+        response_ws = ws.receive_json()
+        assert response_ws == {'event': "intercambio rechazado"}
+
+        assert response.status_code == 200
+
+async def test_intercambiar_infectado_a_lacosa(setup_db_before_test, cleanup_db_after_test): 
+    
+    client = TestClient(app)
+
+    asignar_pos()
+    dar_cartas()
+    with db_session:
+        Jugador[2].Rol = Rol.infectado
+        Carta(id=1003,
+                        template_carta = "Infectado",
+                        jugador=Jugador[2],
+                        partida=Partida[1])
+        
+    cartaData = carta_data(1000)
+
+    with client.websocket_connect(f'ws://localhost:8000/partidas/1/ws?idJugador=2') as ws:
+
+        with patch("api.ws.manager.get_from_message_queue", new_callable=AsyncMock) as mock_get_from_message_queue:
+            mock_get_from_message_queue.side_effect = [json.dumps({"aceptado": True, "data": 1003})]
+            response = client.put(f'/cartas/1000/intercambiar?idObjetivo=2')
+        
+        response_ws = ws.receive_json()
+        assert response_ws == {'event': "intercambio_request",
+                       'data': cartaData}
+
+        response_ws = ws.receive_json()
+        assert response_ws == {'event': "intercambio",
+                               'data': {'idJugador1': 1,
+                                        'idJugador2': 2}}
+
+        response_ws = ws.receive_json()
+        assert response_ws == {'event': "intercambio exitoso"}
+
+        assert response.status_code == 200
