@@ -5,7 +5,7 @@ from db.mazo_session import *
 from db.cartas_session import *
 from db.partidas_session import *
 from .schemas import *
-from random import randint
+import random
 from api.ws import manager
 from fastapi.websockets import *
 from typing import List
@@ -96,14 +96,15 @@ async def iniciar_partida(idPartida: int):
         if len(partida.jugadores) > partida.maxJug or len(partida.jugadores) < partida.minJug: 
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="Partida no respeta limites jugadores")
-            
+        
         crear_templates_cartas()
         crear_mazo(partida)
         commit()
         repartir_cartas(partida)
         partida.iniciada = True
-        partida.turnoActual = randint(0,len(partida.jugadores)-1)
+        partida.turnoActual = random.choice(tuple(partida.jugadores)).id
         posicion = 0
+        partida.cantidadVivos = len(partida.jugadores)
         for jugador in partida.jugadores:
             for carta in jugador.cartas:
                 if carta.template_carta.nombre == "La cosa":

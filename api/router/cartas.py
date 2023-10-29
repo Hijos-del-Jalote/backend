@@ -15,7 +15,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
     with db_session:
         carta = Carta.get(id=id_carta)
         if carta and carta.jugador:
-            if carta.partida.turnoActual != carta.jugador.Posicion : raise HTTPException(status_code=400, detail="No es el turno del jugador que tiene esta carta") 
+            if carta.partida.turnoActual != carta.jugador.id : raise HTTPException(status_code=400, detail="No es el turno del jugador que tiene esta carta") 
 
             partida = carta.partida
             idJugador = carta.jugador.id
@@ -106,18 +106,12 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Carta o jugador no encontrados")
 
         partida = jugador.partida
+        pos_actual = Jugador[partida.turnoActual].Posicion
         if partida.sentido:
-                for i in range(1, len(partida.jugadores)):
-                    pos = (partida.turnoActual+i) % len(partida.jugadores)
-                    if Jugador.get(Posicion=pos, partida=partida).isAlive:
-                        partida.turnoActual = pos
-                        break
+            partida.turnoActual = Jugador.get(Posicion=(pos_actual+1)%partida.cantidadVivos, partida=partida).id
         else:
-            for i in range(1, len(partida.jugadores)):
-                pos = (partida.turnoActual-i) % len(partida.jugadores)
-                if Jugador.get(Posicion=pos, partida=partida).isAlive:
-                    partida.turnoActual = pos
-                    break
+            partida.turnoActual = Jugador.get(Posicion=(pos_actual-1)%partida.cantidadVivos, partida=partida).id   
+                     
         commit()         
     await manager.handle_data("fin_de_turno",carta.partida.id)
 
