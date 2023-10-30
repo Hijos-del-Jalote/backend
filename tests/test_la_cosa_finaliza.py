@@ -48,8 +48,8 @@ async def test_la_cosa_finaliza_pierde(cleanup_db_after_test):
             while len(manager.active_connections.get(1, {})) != 1:
                 await asyncio.sleep(0.1)
             assert len(manager.active_connections[1]) == 1
-            response= client.put(f'jugadores/{La_Cosa.id}/lacosafinaliza')
-            assert response.status_code == 200 
+            response2= client.put(f'jugadores/{La_Cosa.id}/lacosafinaliza')
+            assert response2.status_code == 200 
             response = websocket.receive_json()
             # {"event": "finalizar", "data": json.dumps({'isHumanoTeamWinner': True, 'winners': sorted(ganadores)})}
             assert response == {"event": "finalizar", "data": json.dumps({'isHumanoTeamWinner': True, 'winners': sorted(ganadores)},
@@ -65,7 +65,7 @@ async def test_la_cosa_finaliza_pierde(cleanup_db_after_test):
         assert partida.finalizada==True 
                 
             
-async def test_la_cosa_finaliza_gana():
+async def test_la_cosa_finaliza_gana(cleanup_db_after_test):
     client1 = TestClient(app)
     with db_session:
         ganadores=[]
@@ -80,11 +80,11 @@ async def test_la_cosa_finaliza_gana():
             while len(manager.active_connections.get(1, {})) != 1:
                 await asyncio.sleep(0.1)
             assert len(manager.active_connections[1]) == 1
-            response= client.put(f'jugadores/{La_Cosa.id}/lacosafinaliza')
-            assert response.status_code == 200 
+            response2= client.put(f'jugadores/{La_Cosa.id}/lacosafinaliza')
+            assert response2.status_code == 200 
             response = websocket.receive_json()
             # {"event": "finalizar", "data": json.dumps({'isHumanoTeamWinner': True, 'winners': sorted(ganadores)})}
-            assert response == {"event": "finalizar", "data": json.dumps({'isHumanoTeamWinner': False, 'winners': sorted(ganadores)},
+            assert response== {"event": "finalizar", "data": json.dumps({'isHumanoTeamWinner': False, 'winners': sorted(ganadores)},
                                             separators=(',',':'))}
     with db_session:
         jugador2 = Jugador.get(id=jugador2.id)
