@@ -83,6 +83,61 @@ async def abandonar_lobby(id: int):
 
     return {"detail": "Partida abandonada con éxito"}
 
+@jugadores_router.put("/{idJugador}/lacosafinaliza", status_code=status.HTTP_200_OK)
+async def la_cosa_finaliza_la_partida(idJugador: int):
+    with db_session:
+        jugador = Jugador.get(id=idJugador)
+        if not jugador:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail="No existe jugador con ese id")
+        partida = Partida.get(id=jugador.partida.id)
+        humanos = []
+        infectados = []
+        if jugador.Rol != "La cosa":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="El jugador no es la cosa")
+        if not partida: 
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail="No existe partida con ese id")
+        
+        if partida.iniciada == False:  
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="Partida no iniciada")
+        
+        if partida.finalizada == True: 
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="Partida ya finalizada")
+        ganalacosa=True
+        for jugador in partida.jugadores:
+            if jugador.Rol == "Humano" and jugador.isAlive == True:
+                ganalacosa=False
+                humanos.append(jugador.id)
+            elif jugador.Rol == "Infectado" and partida.ultimo_infectado == jugador.id:
+                humanos.append(jugador.id)
+            else:
+                infectados.append(jugador.id)
+        if ganalacosa == True:
+            partida.finalizada = True
+            for jugador in partida.jugadores:
+                jugador.partida = None
+                jugador.cartas.clear()
+            commit()
+            await manager.handle_data(event="finalizar", idPartida=partida.id, 
+                                        winners=infectados, winning_team="cosos")
+        else:
+            partida.finalizada = True
+            for jugador in partida.jugadores:
+                jugador.partida = None
+                jugador.cartas.clear()
+            commit()
+            await manager.handle_data(event="finalizar", idPartida=partida.id, 
+                                        winners=humanos, winning_team="humanos")
+        
+    
+@jugadores_router.put("/infectar", status_code=status.HTTP_200_OK)
+async def infectar(idJugador: int):
+    with db_session:
+        jugador = Jugador.get(id=idJugador)
+        jugador.Rol="Infectado"
+        return {"Jugador infectado"}
 
-            
- 
