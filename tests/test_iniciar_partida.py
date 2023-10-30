@@ -24,7 +24,7 @@ def test_iniciar_partida(cleanup_db_after_test):
     host = jugadores[0]
     db.commit()
     
-    response = client.put(f"partidas/iniciar/{3232}")
+    response = client.put(f"partidas/iniciar/{2121}?idJugador={host.id}")  
     assert response.status_code == status.HTTP_404_NOT_FOUND
     
     # creo partida
@@ -32,9 +32,11 @@ def test_iniciar_partida(cleanup_db_after_test):
 
     with db_session:
         partida = Partida.get(id = response.json()["idPartida"])
-
+    # host no es host
+    response = client.put(f"partidas/iniciar/{partida.id}?idJugador={jugadores[1].id}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
     # cantidad incorrecta de jugadores
-    response = client.put(f"partidas/iniciar/{partida.id}")
+    response = client.put(f"partidas/iniciar/{partida.id}?idJugador={host.id}")  
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     
     # uno jugadores a partida
@@ -42,7 +44,7 @@ def test_iniciar_partida(cleanup_db_after_test):
         client.post(f"partidas/unir?idPartida={partida.id}&idJugador={jugadores[i].id}")
     
     # partida correcta
-    response = client.put(f"partidas/iniciar/{partida.id}")
+    response = client.put(f"partidas/iniciar/{partida.id}?idJugador={host.id}")  
     assert response.status_code == status.HTTP_200_OK
     
     # verifico que se haya iniciado
@@ -68,6 +70,6 @@ def test_iniciar_partida(cleanup_db_after_test):
     assert cant_cosas == 1
     
     # partida ya iniciada
-    response = client.put(f"partidas/iniciar/{partida.id}")
+    response = client.put(f"partidas/iniciar/{partida.id}?idJugador={host.id}")  
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 

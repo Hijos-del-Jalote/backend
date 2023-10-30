@@ -23,7 +23,7 @@ async def test_finalizar_partida(cleanup_db_after_test):
         response = client2.post(f'jugadores?nombre={"J" + str(i)}')
         client2.post(f'partidas/unir?idPartida={partida.id}&idJugador={response.json()["id"]}')
 
-    response = client2.put(f"partidas/iniciar/{partida.id}")
+    response = client2.put(f"partidas/iniciar/{partida.id}?idJugador={hostid}")  
     # Esperar la respuesta del websocket en el cliente1:
     ganadores = []
     with db_session:
