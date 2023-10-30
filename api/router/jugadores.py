@@ -133,11 +133,3 @@ async def la_cosa_finaliza_la_partida(idJugador: int):
             await manager.handle_data(event="finalizar", idPartida=partida.id, 
                                         winners=humanos, winning_team="humanos")
         
-    
-@jugadores_router.put("/infectar", status_code=status.HTTP_200_OK)
-async def infectar(idJugador: int):
-    with db_session:
-        jugador = Jugador.get(id=idJugador)
-        jugador.Rol="Infectado"
-        return {"Jugador infectado"}
-
