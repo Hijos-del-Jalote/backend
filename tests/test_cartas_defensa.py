@@ -27,7 +27,7 @@ def test_cartas_defensa(cleanup_db_after_test):
         for i in range(1,4):
             client.post(f"partidas/unir?idPartida={partida.id}&idJugador={jugadores[i].id}")
         # inicio  partida
-        response = client.put(f"partidas/iniciar?idPartida={partida.id}")
+        response = client.put(f"partidas/iniciar/{partida.id}")
         # verifico que haya la cant de cartas correcta
         with db_session:
             partida = Partida.get(id = partida.id)

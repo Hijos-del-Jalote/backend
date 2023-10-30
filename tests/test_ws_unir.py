@@ -39,7 +39,7 @@ async def test_iniciar_partida_ws(cleanup_db_after_test):
     response = client1.post(f'jugadores?nombre=FireAndBlood')
     
     partida = 2
-
+    
     with client1.websocket_connect(f"ws://localhost:8000/partidas/2/ws?idJugador={response.json()['id']}") as websocket:
         while len(manager.active_connections.get(2, {})) != 1:
             await asyncio.sleep(0.1)
@@ -47,7 +47,7 @@ async def test_iniciar_partida_ws(cleanup_db_after_test):
 
         # mandar un post con otro cliente:
 
-        response = client2.put(f'partidas/iniciar?idPartida={partida}')
+        response = client2.put(f"partidas/iniciar/{partida}")
         assert response.json() == {"detail": "Partida iniciada con exito"}
 
         # Esperar la respuesta del websocket en el cliente1:

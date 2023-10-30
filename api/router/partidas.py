@@ -81,13 +81,20 @@ async def obtener_partida(id: int) -> PartidaResponse:
     return partidaResp
 
 
-@partidas_router.put("/iniciar", status_code=status.HTTP_200_OK)
-async def iniciar_partida(idPartida: int):
+@partidas_router.put("/iniciar/{idPartida}/", status_code=status.HTTP_200_OK)
+async def iniciar_partida(idPartida: int ):
     with db_session:
         partida = Partida.get(id=idPartida)
         if not partida: 
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                     detail="No existe partida con ese id")
+        jugador=select(p for p in partida.jugadores if p.isHost == True).first()
+        if not jugador:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail="No existe jugador con ese id")
+        if jugador.isHost == False:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="El jugador no es el host")
         
         if partida.iniciada:  
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
