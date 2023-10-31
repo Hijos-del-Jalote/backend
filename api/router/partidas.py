@@ -135,13 +135,15 @@ async def finalizar_partida(id: int) -> EstadoPartida:
         for jugador in partida.jugadores:
             if jugador.isAlive == True:
                 jugadores.append(jugador)
-
                 commit()
             if len(jugadores) == 1: # o sea, hay ganadors
                 return EstadoPartida(finalizada=True, idGanador=jugadores[0].id)
             else:
                 return EstadoPartida(finalizada=False, idGanador=-1)
 
+
+        
+    
 
 @partidas_router.websocket("/{idPartida}/ws")
 async def websocket_endpoint(websocket: WebSocket, idPartida: int, idJugador: int):
@@ -177,30 +179,20 @@ def get_winners(idPartida: int, idJugador: int) -> tuple:
     with db_session:
         jugadores = Partida.get(id=idPartida).jugadores
         humanos = []
-        cosos = []
         isLacosaAlive = True
-        cosaunicoganador = True
+        infectados = []
         for jugador in jugadores:
             if jugador.Rol == "Humano":
                 humanos.append(jugador.id)
             if jugador.Rol == "La cosa" and not jugador.isAlive:
                 isLacosaAlive = False
-            # ultimo humano sigue contando como humano, asi que no está en cosos:
-            if (jugador.Rol == "La cosa" or jugador.Rol == "Infectado") and (jugador.id != idJugador):
-                cosos.append(jugador.id)
-            if not jugador.isAlive:
-                cosaunicoganador = False
+            if jugador.Rol == "Infectado" and jugador.isAlive:
+                infectados.append(jugador.id)
             if jugador.Rol == "La cosa":
-                idLacosa = jugador.id
-
-    if len(humanos) == 0 and isLacosaAlive: # gana la cosa y su team
-        if len(cosos) == len(jugadores) and cosaunicoganador: # si para todos isAlive y todos infectados
-            return ([idLacosa], "cosos")
-        else:
-            return (sorted(cosos), "cosos")
-        
+                infectados.append(jugador.id)
+    if len(infectados)==1 and isLacosaAlive: # todos muertos menos la cosa
+        return (sorted(infectados), "la cosa")           
+    elif not isLacosaAlive: # muere la cosa
+        return (sorted(humanos), "humanos")
     else:
-        if not isLacosaAlive: # ganan los humanos
-            return (sorted(humanos), "humanos")
-        else:
-            return ([], "no termino")
+        return ([], "no termino")
