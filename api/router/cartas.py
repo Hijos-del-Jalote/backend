@@ -56,7 +56,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                         manager.handle_data("analisis",partida.id,idJugador,idObjetivo=id_objetivo)
 
                     
-                    
+            partida.ultimaJugada = carta.template_carta.nombre        
             carta.jugador.cartas.remove(carta)
             carta.descartada=True
                 
@@ -79,6 +79,7 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
         carta: Carta = Carta.get(id=idCarta)
         jugObj: Jugador = Jugador.get(id=idObjetivo)
         jugador = Jugador.get(id=carta.jugador.id)
+        partida = jugador.partida
         commit()
         if carta and jugObj:
             if not jugador:
@@ -92,9 +93,13 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="Jugador 1 no puede intercambiar una carta de infectado")
 
-                if not es_siguiente(jugador,jugObj):
+                if (partida.ultimaJugada != "Seduccion") & (not es_siguiente(jugador,jugObj)):
                     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="Sólo puede intercambiar con el siguiente jugador")
+                
+                if (partida.ultimaJugada == "Seduccion") & jugObj.cuarentena:
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="No se puede intercambiar con un jugador en cuarentena")
 
                 response = await manager.handle_data("intercambiar", carta.partida.id, jugador.id,
                                                      idCarta=idCarta, idObjetivo=idObjetivo)
@@ -112,7 +117,8 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Carta o jugador no encontrados")
 
-        partida = jugador.partida
+        partida.ultimaJugada = ""
+        
         pos_actual = Jugador[partida.turnoActual].Posicion
         if partida.sentido:
             partida.turnoActual = Jugador.get(Posicion=(pos_actual+1)%partida.cantidadVivos, partida=partida).id
