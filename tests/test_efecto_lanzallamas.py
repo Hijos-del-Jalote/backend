@@ -20,7 +20,7 @@ def test_efecto_lanzallamas(cleanup_db_after_test):
         #Crear un jugador que jugara la carta
         jugador1 = Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=False, Posicion=0)
         #Crear un jugador que recibira el efecto
-        jugador2 = Jugador(nombre="Chun", isHost=False, isAlive=True, blockIzq=False, blockDer=False, Posicion=1)
+        jugador2 = Jugador(nombre="Chun", isHost=False, isAlive=True, blockIzq=False, blockDer=False, Posicion=1, Rol=Rol.lacosa)
         #Crear una partida con jugadores
         partida = Partida(nombre="Partida", maxJug=5, minJug=1, sentido=False, iniciada=True, cantidadVivos=2, jugadores={jugador1, jugador2})
         #Crear carta y asignarsela al jugador1 y partida
@@ -35,7 +35,7 @@ def test_efecto_lanzallamas(cleanup_db_after_test):
         response = client.post(f'cartas/jugar?id_carta={carta.id}')
         assert(response.status_code == 400)
         #Jugar carta pasando objetivo inexistente
-        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={10000000000}&test=True')
+        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={-1}&test=True')
         assert(response.status_code == 400)
         
         if l:

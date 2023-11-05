@@ -14,11 +14,12 @@ cartas_router = APIRouter()
 async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
     with db_session:
         carta = Carta.get(id=id_carta)
+        
         if carta and carta.jugador:
-            if carta.partida.turnoActual != carta.jugador.id : raise HTTPException(status_code=400, detail="No es el turno del jugador que tiene esta carta") 
-
+            jugador = carta.jugador
+            if carta.partida.turnoActual != jugador.id : raise HTTPException(status_code=400, detail="No es el turno del jugador que tiene esta carta") 
             partida = carta.partida
-            idJugador = carta.jugador.id
+            idJugador = jugador.id
             
             defendido = False
             if id_objetivo != None and not test:
@@ -44,20 +45,23 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                 
                     case "Lanzallamas":
                         efectos_cartas.efecto_lanzallamas(id_objetivo)
+                        await fin_partida(partida.id, idJugador)
                     case "Vigila tus espaldas":
                         efectos_cartas.vigila_tus_espaldas(partida)
                     case "Cambio de lugar":
-                        efectos_cartas.cambio_de_lugar(carta.jugador, Jugador[id_objetivo])
+                        efectos_cartas.cambio_de_lugar(jugador, Jugador[id_objetivo])
                     case "Mas vale que corras":
-                        efectos_cartas.mas_vale_que_corras(carta.jugador, Jugador[id_objetivo])
+                        efectos_cartas.mas_vale_que_corras(jugador, Jugador[id_objetivo])
                     case "Puerta trancada":
-                        efectos_cartas.puerta_trancada(carta.jugador, Jugador[id_objetivo])
+                        efectos_cartas.puerta_trancada(jugador, Jugador[id_objetivo])
                     case "Analisis":
                         manager.handle_data("analisis",partida.id,idJugador,idObjetivo=id_objetivo)
 
                     
             partida.ultimaJugada = carta.template_carta.nombre        
-            carta.jugador.cartas.remove(carta)
+            if(jugador.isAlive):
+                jugador.cartas.remove(carta)
+
             carta.descartada=True
                 
 
@@ -66,7 +70,6 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
             await manager.handle_data(event="fin turno jugar", idPartida=partida.id)                   
             # por ahora aca porque esto marca el fin del turno, desp lo pondre en intercambiar carta
             
-            await fin_partida(partida.id, idJugador)
 
         else:
             raise HTTPException(status_code=400, detail="No existe el id de la carta ó jugador que la tenga")
