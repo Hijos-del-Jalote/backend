@@ -57,6 +57,7 @@ class Partida(db.Entity):
     iniciada = Required(bool, default=False)
     finalizada = Optional(bool, default=False)
     jugadores = Set(Jugador)
+    cantidadVivos = Optional(int)
     cartas = Set(Carta)
     ultimo_infectado = Optional(int)
     

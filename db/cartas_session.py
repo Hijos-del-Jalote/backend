@@ -127,12 +127,6 @@ def carta_data(idCarta: int):
         carta = Carta.get(id=idCarta)
     return carta.to_dict(with_collections=True)
 
-# def can_trade(idJug1: int, idJug2: int):
-#     with db_session:
-#         jugador1: Jugador = Jugador.get(idJug1)
-#         jugador2: Jugador = Jugador.get(idJug2)
-
-#         if 
 
 @db_session
 def descartar_carta(idCarta: int):
@@ -158,3 +152,18 @@ def descartar_carta(idCarta: int):
                 jugador.cartas.remove(carta)
             else:
                 raise HTTPException(status_code=404,detail="La carta no está en la mano del jugador")
+
+
+def corroborar_infección(jugador1: Jugador, jugador2: Jugador,
+                             carta1: Carta, carta2: Carta):
+    with db_session:
+        if carta1.template_carta.nombre == "Infectado" and jugador2.Rol != Rol.lacosa:
+                jugador2.Rol = Rol.infectado
+        elif carta2.template_carta.nombre == "Infectado" and jugador1.Rol != Rol.lacosa:
+                jugador1.Rol = Rol.infectado
+
+def puede_intercambiar_infectado(jugador1: Jugador, jugador2:Jugador):
+    with db_session:
+        ret = jugador1.Rol == Rol.lacosa or (jugador1.Rol == Rol.infectado and jugador2.Rol == Rol.lacosa)
+    
+    return ret

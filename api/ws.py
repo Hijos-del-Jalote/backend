@@ -4,7 +4,7 @@ from .router.schemas import *
 from db.models import *
 from db.partidas_session import get_partida, fin_partida_respond, get_jugadores_partida
 from db.jugadores_session import get_abandonarlobby_data
-from db.cartas_session import carta_data, get_mano_jugador
+from db.cartas_session import carta_data, get_mano_jugador, puede_intercambiar_infectado
 import asyncio
 import json
 
@@ -93,8 +93,21 @@ class ConnectionManager:
                 await self.broadcast(data2, idPartida)
                 
                 #espero respuesta del jugador objetivo
-                response = await self.get_from_message_queue(idPartida, idObjetivo)
-                json_data = json.loads(response)
+                while True:
+                    response = await self.get_from_message_queue(idPartida, idObjetivo)
+                    json_data = json.loads(response)
+                    if json_data['aceptado']:
+                        jugador = Jugador.get(id=idJugador)
+                        jugObj = Jugador.get(id=idObjetivo)
+                        jo_carta: Carta = Carta.get(id=json_data['data'])
+
+                        if jo_carta.template_carta.nombre == "Infectado" and not puede_intercambiar_infectado(jugObj,jugador):
+                            await self.personal_msg(build_dict("Intercambio erróneo", "No puedes intercambiar una carta de infectado"),
+                                                    idPartida,idObjetivo) 
+                        else:
+                            break
+                    else:
+                        break
                 return json_data
             
             case "fin_de_turno": # si aca devolvemos la partida entera se podria unir en un solo evento con "unir"

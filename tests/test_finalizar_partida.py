@@ -32,7 +32,7 @@ async def test_finalizar_partida(cleanup_db_after_test):
             j.Rol = "Humano"
             j.isAlive = True
             ganadores.append(j.id)
-            if j.Posicion == partida.turnoActual:
+            if j.Posicion == Jugador.get(id=partida.turnoActual).Posicion:
                 jugadorActual = j
             else:
                 lacosa = j # se lo asigno a uno que no sea el que le toca
