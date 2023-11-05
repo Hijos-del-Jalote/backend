@@ -177,22 +177,15 @@ async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la
 
 def get_winners(idPartida: int, idJugador: int) -> tuple:
     with db_session:
-        jugadores = Partida.get(id=idPartida).jugadores
-        humanos = []
-        isLacosaAlive = True
-        infectados = []
-        for jugador in jugadores:
-            if jugador.Rol == "Humano":
-                humanos.append(jugador.id)
-            if jugador.Rol == "La cosa" and not jugador.isAlive:
-                isLacosaAlive = False
-            if jugador.Rol == "Infectado" and jugador.isAlive:
-                infectados.append(jugador.id)
-            if jugador.Rol == "La cosa":
-                infectados.append(jugador.id)
-    if len(infectados)==1 and isLacosaAlive: # todos muertos menos la cosa
-        return (sorted(infectados), "la cosa")           
-    elif not isLacosaAlive: # muere la cosa
+        partida = Partida.get(id=idPartida)
+        jugadores = partida.jugadores
+        lacosa = get(j for j in jugadores if j.Rol == Rol.lacosa)
+        muertos = select(j for j in jugadores if not j.isAlive)
+        humanos = select(j.id for j in jugadores if j.Rol == Rol.humano)
+    
+    if len(jugadores)-1==len(muertos) and lacosa.isAlive: # todos muertos menos la cosa
+        return ([lacosa.id], "cosos")           
+    if not lacosa.isAlive: # muere la cosa
         return (sorted(humanos), "humanos")
     else:
         return ([], "no termino")
