@@ -60,6 +60,7 @@ class Partida(db.Entity):
     cantidadVivos = Optional(int)
     cartas = Set(Carta)
     ultimo_infectado = Optional(int)
+    ultimaJugada = Optional(str, default = "")
     
 # Conecta a la base de datos SQLite en el archivo 'database.sqlite'
 db.bind(provider='sqlite', filename=DATABASE_FILENAME, create_db=True)
