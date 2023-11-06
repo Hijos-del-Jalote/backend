@@ -109,7 +109,8 @@ def robar_carta(idJugador: int):
                 match cartaNombre: # agregar las cartas de panico y actuar acorde
                     case _:
                         pass
-
+                
+                carta.set(descartada=True)
             else:
                 agregar_carta_en_mano(jugador.cartas, carta)
 
