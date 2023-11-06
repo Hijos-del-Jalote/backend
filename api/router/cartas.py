@@ -56,7 +56,8 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                         efectos_cartas.puerta_trancada(jugador, Jugador[id_objetivo])
                     case "Analisis":
                         manager.handle_data("analisis",partida.id,idJugador,idObjetivo=id_objetivo)
-
+                    case "Whisky":
+                        manager.handle_data("whisky",partida.id,idJugador)   
                     
             partida.ultimaJugada = carta.template_carta.nombre        
             if(jugador.isAlive):

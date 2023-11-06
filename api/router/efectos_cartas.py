@@ -121,6 +121,7 @@ def mas_vale_que_corras(jugador1, jugador2):
         else:
             raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")
 
+
 def efecto_infeccion(id_objetivo, id_jugador):
     with db_session:
         if (id_objetivo != None) & (Jugador.exists(id=id_objetivo)):
@@ -134,5 +135,4 @@ def efecto_infeccion(id_objetivo, id_jugador):
                 # el orden en jugar carta
         else:
             raise HTTPException(status_code=400, detail="Jugador objetivo No existe o No proporcionado")
-
 
