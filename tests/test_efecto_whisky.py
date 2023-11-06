@@ -32,6 +32,6 @@ async def test_jugar_whisky(cleanup_db_after_test):
             response = client.post(f'cartas/jugar?id_carta={carta_whisky.id}') 
             assert response.status_code == 200
             response2 = websocket.receive_json()
-            assert response2 == {"event": "Whisky", "data":['Whisky', 'Lanzallamas', 'Lanzallamas', 'Lanzallamas', 'Lanzallamas']}
+            assert response2 == {"event": "Whisky", "data": get_mano_jugador(jugador.id)}
 
             
