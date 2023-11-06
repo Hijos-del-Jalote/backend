@@ -29,10 +29,9 @@ async def test_jugar_whisky(cleanup_db_after_test):
             while len(manager.active_connections.get(1, {})) != 1:
                 await asyncio.sleep(0.1)
             assert len(manager.active_connections[1]) == 1
-            response = client.post(f'cartas/jugar?id_carta={carta_whisky.id}')
-            
+            response = client.post(f'cartas/jugar?id_carta={carta_whisky.id}') 
             assert response.status_code == 200
             response2 = websocket.receive_json()
-            assert response2 == {"event": "Whisky"}
+            assert response2 == {"event": "Whisky", "data":['Whisky', 'Lanzallamas', 'Lanzallamas', 'Lanzallamas', 'Lanzallamas']}
 
             

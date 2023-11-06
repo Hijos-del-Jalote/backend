@@ -57,7 +57,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                     case "Analisis":
                         manager.handle_data("analisis",partida.id,idJugador,idObjetivo=id_objetivo)
                     case "Whisky":
-                        manager.handle_data("whisky",partida.id,idJugador)   
+                        await manager.handle_data("Whisky",partida.id,idJugador)   
                     
             partida.ultimaJugada = carta.template_carta.nombre        
             if(jugador.isAlive):
