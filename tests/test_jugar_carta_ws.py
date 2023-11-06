@@ -250,4 +250,4 @@ def test_jugar_carta_nocarta(setup_db_before_test, cleanup_db_after_test):
     
     response = client.post(f'cartas/jugar?id_carta=42069&id_objetivo=1')
     assert response.status_code == 400
-    assert response.json() == {'detail': "No existe el id de la carta ó jugador que la tenga"}
+    assert response.json() == {'detail': "El jugador objetivo deber ser adyacente"}

@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from db.models import *
 from pony.orm import db_session
 from fastapi import HTTPException
+from api.ws import manager
 
 #Esta funcion es para saber si jugador2 es adyacente a jugador1 y de que lado.
 #El valor de retorno es una tupla (adyacente, lado)
@@ -135,4 +136,15 @@ def efecto_infeccion(id_objetivo, id_jugador):
         else:
             raise HTTPException(status_code=400, detail="Jugador objetivo No existe o No proporcionado")
 
-
+async def sospecha(idPartida, idObjetivo, idJugador):
+    if son_adyacentes(Jugador.get(id=idObjetivo), Jugador.get(id=idJugador))[0]:
+        await manager.handle_data("sospecha", idPartida, idObjetivo=idObjetivo, idJugador=idJugador)
+        await manager.get_from_message_queue(idPartida,idJugador)
+    else:
+        raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")        
+    
+    
+    
+    
+    
+    
