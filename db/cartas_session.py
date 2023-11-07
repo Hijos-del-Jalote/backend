@@ -102,17 +102,9 @@ def robar_carta(idJugador: int):
             else:
                 carta = query[0]
 
-            if carta.template_carta.tipo == Tipo_Carta.panico:
-
-                cartaNombre = carta.template_carta.nombre
-                
-                match cartaNombre: # agregar las cartas de panico y actuar acorde
-                    case _:
-                        pass
-                
-                carta.set(descartada=True)
-            else:
-                agregar_carta_en_mano(jugador.cartas, carta)
+            agregar_carta_en_mano(jugador.cartas, carta)
+            partida.ultimaRobada = carta.id
+            commit()
 
             
 @db_session
