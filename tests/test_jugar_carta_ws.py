@@ -268,3 +268,22 @@ def test_jugar_carta_nocarta(setup_db_before_test, cleanup_db_after_test):
     response = client.post(f'cartas/jugar?id_carta=42069&id_objetivo=1')
     assert response.status_code == 400
     assert response.json() == {'detail': "No existe el id de la carta ó jugador que la tenga"}
+
+def test_jugar_carta_panico_fail(setup_db_before_test,cleanup_db_after_test):
+    client = TestClient(app)
+
+    
+    with db_session:
+        for c in Partida[1].cartas :
+            if c.template_carta.tipo != Tipo_Carta.panico:
+                c.delete()
+
+    ids = dar_cartas("Lanzallamas", "Cuarentena")
+
+    response = client.put("jugadores/1/robar")
+    assert response.status_code == 200
+    assert response.json() == {'detail': 'Robo exitoso!'}
+
+    response = client.post(f'cartas/jugar?id_carta={ids["idc1"]}&id_objetivo=2')
+    assert response.status_code == 400
+    assert response.json() == {'detail': 'Debes jugar la carta de pánico levantada'}
