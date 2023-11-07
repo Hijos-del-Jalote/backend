@@ -6,7 +6,7 @@ CARTAS_POR_JUGADOR = {
     4 : {
         'Infectado':8,
 		'Lanzallamas':2,
-        'Sospecha':199,
+        'Sospecha':4,
         'Seduccion':2,
         'Mas vale que corras':2,
         'Cambio de lugar':2,
