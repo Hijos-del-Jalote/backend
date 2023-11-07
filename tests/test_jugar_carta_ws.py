@@ -8,6 +8,13 @@ import json
 from api.router.schemas import JugarCartaData
 from db.partidas_session import get_partida
 
+
+def rm_panico_cards(mazo: Set(Carta)):
+    with db_session:
+        for c in mazo.select():
+            if c.template_carta.tipo == Tipo_Carta.panico:
+                c.delete()
+
 def dar_cartas(nomcarta1: str, nomcarta2: str):
     with db_session:
         jugador1 = Jugador.get(id=1)
@@ -48,6 +55,8 @@ async def test_jugar_carta_defendido(setup_db_before_test, cleanup_db_after_test
 
     ids = dar_cartas("Lanzallamas", "Nada de barbacoas")
     
+    with db_session:
+        rm_panico_cards(Partida[ids['idpartida']].cartas)
 
     async def fake_get_from_message_queue(id_partida, id_objetivo):
         # Simular una respuesta que se esperaría
@@ -100,6 +109,8 @@ async def test_jugar_carta_no_defendido(setup_db_before_test, cleanup_db_after_t
     
     ids = dar_cartas("Lanzallamas", "Cuarentena")
     
+    with db_session:
+        rm_panico_cards(Partida[ids['idpartida']].cartas)
 
     async def fake_get_from_message_queue(id_partida, id_objetivo):
         # Simular una respuesta que se esperaría
@@ -139,9 +150,12 @@ def test_jugar_lacosa_muere(setup_db_before_test, cleanup_db_after_test):
     client = TestClient(app)
     ids = dar_cartas("Cuarentena", "Lanzallamas")
 
+    
+
     with db_session:
         partida = Jugador[ids['idj1']].partida
         partida.turnoActual= ids['idj2']
+        rm_panico_cards(partida.cartas)
     
     async def fake_get_from_message_queue(id_partida, id_objetivo):
         # Simular una respuesta que se esperaría
@@ -188,9 +202,12 @@ def test_jugar_lacosa_procede_a_masacrar_a_todos(setup_db_before_test, cleanup_d
     client = TestClient(app)
     ids = dar_cartas("Lanzallamas", "Cuarentena")
 
+
     with db_session:
         for i in range(3,5):
             Jugador[ids[f'idj{i}']].isAlive = False
+        rm_panico_cards(Partida[ids['idpartida']].cartas)
+
     async def fake_get_from_message_queue(id_partida, id_objetivo):
         # Simular una respuesta que se esperaría
         response_data = {
