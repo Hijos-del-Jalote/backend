@@ -28,7 +28,7 @@ def crear_datos_partida():
         crear_templates_cartas()
         partida = Partida(nombre="partida", iniciada=True, finalizada=False , maxJug=5, minJug=4, turnoActual=1)
         db.commit()
-        jugador = Jugador(nombre="Jugador", Rol="Humano", isHost=True, isAlive=True, blockIzq=False, blockDer=False, Posicion=0)
+        jugador = Jugador(nombre="Jugador", Rol="Humano", isHost=True, isAlive=True, blockIzq=False, blockDer=False, Posicion=0,partida=partida)
         db.commit()
         Carta(descartada=False, template_carta="Ups", partida=partida, jugador=jugador)
         for i in range(4):
