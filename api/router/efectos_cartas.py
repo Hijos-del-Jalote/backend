@@ -2,7 +2,8 @@ from fastapi.testclient import TestClient
 from db.models import *
 from pony.orm import db_session
 from fastapi import HTTPException
-
+from api.ws import manager
+import asyncio
 #Esta funcion es para saber si jugador2 es adyacente a jugador1 y de que lado.
 #El valor de retorno es una tupla (adyacente, lado)
 #adyacente es bool indicando si es o no adyacente. Si no lo es entonces lado es None, sino:
@@ -26,7 +27,7 @@ def son_adyacentes(jugador1, jugador2):
             return (True, 2)
              
     else:
-        raise Exception("Los jugadores o no existen o no pertenecen a la misma partida")     
+        raise HTTPException(status_code = 400, detail ="Los jugadores o no existen o no pertenecen a la misma partida")     
 
 def recalcular_posiciones(partida, pos_muerta):
     for jugador in partida.jugadores:
@@ -135,4 +136,15 @@ def efecto_infeccion(id_objetivo, id_jugador):
         else:
             raise HTTPException(status_code=400, detail="Jugador objetivo No existe o No proporcionado")
 
-
+async def sospecha(idPartida, idObjetivo, idJugador):
+    if son_adyacentes(Jugador.get(id=idObjetivo), Jugador.get(id=idJugador))[0]:
+        await manager.handle_data("sospecha", idPartida, idObjetivo=idObjetivo, idJugador=idJugador)
+        await asyncio.sleep(5)
+    else:
+        raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")        
+    
+    
+    
+    
+    
+    
