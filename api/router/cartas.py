@@ -20,6 +20,13 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
             if carta.partida.turnoActual != jugador.id : raise HTTPException(status_code=400, detail="No es el turno del jugador que tiene esta carta") 
             partida = carta.partida
             idJugador = jugador.id
+            ultimaRobada = Carta.get(id=partida.ultimaRobada)
+            commit()
+
+            if  ultimaRobada and ultimaRobada.template_carta.tipo == Tipo_Carta.panico and carta != ultimaRobada:
+                raise HTTPException(status_code=400, detail="Debes jugar la carta de pánico levantada")
+            
+
             defendido = False
             if id_objetivo != None and not test:
                 objetivo = Jugador[id_objetivo]
@@ -72,7 +79,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
 
             carta.descartada=True
                 
-
+            partida.ultimaRobada=None
             
     
             await manager.handle_data(event="fin turno jugar", idPartida=partida.id)                   

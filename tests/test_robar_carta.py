@@ -21,11 +21,21 @@ def mazo_is_available(mazo: Set(Carta)) -> bool:
         mazo_discarded_cant = count(mazo.select(lambda carta: carta.descartada == False))
     return mazo_cant == mazo_discarded_cant
 
+
+def rm_panico_cards(mazo: Set(Carta)):
+    with db_session:
+        for c in mazo.select():
+            if c.template_carta.tipo == Tipo_Carta.panico:
+                c.delete()
+
 def test_robo_exitoso(setup_db_before_test):
     with db_session:
         partida = Partida[1]
         jugador = select(j for j in partida.jugadores).first()
-
+        
+        rm_panico_cards(partida.cartas)
+        commit()
+        
         response = client.put(f'/jugadores/{jugador.id}/robar')
         assert count(jugador.cartas) == 1
 
@@ -36,7 +46,10 @@ def test_mano_llena():
     with db_session:
         partida = Partida[1]
         jugador = select(j for j in partida.jugadores).first()
-    
+        
+        rm_panico_cards(partida.cartas)
+        commit()
+        
         for i in range(5):
             response = client.put(f'/jugadores/{jugador.id}/robar')
 
@@ -46,10 +59,13 @@ def test_mano_llena():
     assert response.json() == {"detail": "Mano llena!"}
 
 
-def test_mazo_vacio(cleanup_db_after_test):
+def test_mazo_vacio():
     with db_session:
         partida = Partida[1]
         jugador = select(j for j in partida.jugadores).first()
+        rm_panico_cards(partida.cartas)
+        commit()
+
         vaciar_manos(partida)
         descartar_todo(partida)
         commit()
