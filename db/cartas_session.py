@@ -115,7 +115,7 @@ def get_mano_jugador(idJugador: int):
         list = []
         for carta in cartas:
             list.append(carta.template_carta.nombre)
-    return list
+    return sorted(list)
 
 
 
