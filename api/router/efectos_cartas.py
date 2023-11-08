@@ -145,3 +145,10 @@ async def sospecha(idPartida, idObjetivo, idJugador):
     else:
         raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")        
     
+def cuerdas_podridas(idPartida):
+    partida = Partida.get(id=idPartida)
+    if not partida:
+        raise HTTPException(status_code=400, detail="Partida no existente")
+    else:
+        for j in partida.jugadores:
+            j.cuarentena = False
