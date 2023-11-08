@@ -126,6 +126,9 @@ class ConnectionManager:
             case "sospecha":
                 data = build_dict("sospecha", get_mano_jugador(idObjetivo))
                 await self.personal_msg(data, idPartida, idJugador)
+            case "Ups":
+                data = build_dict("Ups", get_mano_jugador(idJugador))
+                await self.broadcast(data,idPartida)
             case _:
                 print("El resto")
 
