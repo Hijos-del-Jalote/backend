@@ -20,10 +20,24 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
             if carta.partida.turnoActual != jugador.id : raise HTTPException(status_code=400, detail="No es el turno del jugador que tiene esta carta") 
             partida = carta.partida
             idJugador = jugador.id
+            ultimaRobada = Carta.get(id=partida.ultimaRobada)
+            commit()
+
+            if  ultimaRobada and ultimaRobada.template_carta.tipo == Tipo_Carta.panico and carta != ultimaRobada:
+                raise HTTPException(status_code=400, detail="Debes jugar la carta de pánico levantada")
             
+
             defendido = False
             if id_objetivo != None and not test:
+                objetivo = Jugador[id_objetivo]
+                
+                if ((efectos_cartas.son_adyacentes(jugador, objetivo)[1] in [0,2]) & (jugador.blockIzq or objetivo.blockDer)) or ((efectos_cartas.son_adyacentes(jugador, objetivo)[1] == 1) & (jugador.blockDer or objetivo.blockIzq)):
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="Hay una puerta trancada entre los jugadores")
+                    
                 await manager.handle_data(event="jugar carta", idPartida=partida.id, idObjetivo=id_objetivo, idCarta=id_carta, idJugador=idJugador, template_carta=carta.template_carta.nombre, nombreJugador=Jugador[idJugador].nombre, nombreObjetivo=Jugador[id_objetivo].nombre)
+                
+                
                 
                 response = await manager.get_from_message_queue(partida.id,id_objetivo)
                 response = json.loads(response) #hay que parsear el json
@@ -58,14 +72,17 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                         manager.handle_data("analisis",partida.id,idJugador,idObjetivo=id_objetivo)
                     case "Whisky":
                         await manager.handle_data("Whisky",partida.id,idJugador)   
-                    
+                    case "Sospecha":
+                        await efectos_cartas.sospecha(partida.id, id_objetivo, idJugador)
+                        
+
             partida.ultimaJugada = carta.template_carta.nombre        
             if(jugador.isAlive):
                 jugador.cartas.remove(carta)
 
             carta.descartada=True
                 
-
+            partida.ultimaRobada=None
             
     
             await manager.handle_data(event="fin turno jugar", idPartida=partida.id)                   
@@ -104,6 +121,10 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                 if (partida.ultimaJugada == "Seduccion") & jugObj.cuarentena:
                     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="No se puede intercambiar con un jugador en cuarentena")
+
+                if ((efectos_cartas.son_adyacentes(jugador, jugObj)[1] in [0,2]) & (jugador.blockIzq or jugObj.blockDer)) or ((efectos_cartas.son_adyacentes(jugador, jugObj)[1] == 1) & (jugador.blockDer or jugObj.blockIzq)):
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="Hay una puerta trancada entre los jugadores")
 
                 response = await manager.handle_data("intercambiar", carta.partida.id, jugador.id,
                                                      idCarta=idCarta, idObjetivo=idObjetivo)

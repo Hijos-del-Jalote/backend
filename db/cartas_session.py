@@ -63,7 +63,10 @@ def repartir_cartas(partida:Partida):
     jugador_aleatorio.cartas.add(la_cosa)
     for jugador in partida.jugadores:
         for i in range(cantidad_cartas_por_jugador):
-            carta = select(c for c in partida.cartas if not c.descartada and c.jugador==None).random(1)
+            carta = select(c for c in partida.cartas if not c.descartada and
+                           c.jugador==None and
+                           c.template_carta.tipo != Tipo_Carta.panico).random(1)
+            
             if len(jugador.cartas)<4:
                  jugador.cartas.add(carta)
 
@@ -91,12 +94,17 @@ def robar_carta(idJugador: int):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="El jugador no está en una partida")
         else:
-            carta = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).random(1)
-            if not carta:
+            query = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).random(1)
+            if not query:
                 rellenar_mazo(partida)
                 commit()
-                carta = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).random(1)
+                carta = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).random(1)[0]
+            else:
+                carta = query[0]
+
             agregar_carta_en_mano(jugador.cartas, carta)
+            partida.ultimaRobada = carta.id
+            commit()
 
             
 @db_session
