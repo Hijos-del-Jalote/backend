@@ -145,3 +145,8 @@ async def sospecha(idPartida, idObjetivo, idJugador):
     else:
         raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")        
     
+async def entre_nosotros(idPartida, idObjetivo, idJugador):
+    if son_adyacentes(Jugador.get(id=idObjetivo), Jugador.get(id=idJugador))[0]:
+        await manager.handle_data("Que quede entre nosotros", idPartida,idJugador=idJugador ,idObjetivo=idObjetivo)
+    else:
+        raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")
