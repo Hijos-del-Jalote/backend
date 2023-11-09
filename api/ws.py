@@ -122,8 +122,14 @@ class ConnectionManager:
                 data = build_dict("Analisis", get_mano_jugador(idObjetivo))
                 await self.personal_msg(data,idPartida,idJugador)
             case "chat_msg":
-                data = build_dict("chat_msg", msg_data(msg,idJugador, False))
+                msgdata = msg_data(msg,idJugador, False)
+                with db_session:
+                    partida = Partida.get(id=idPartida)
+                    partida.chat.append(json.dumps(msgdata))
+                    commit()
+                data = build_dict("chat_msg", msgdata)
                 await self.broadcast(data, idPartida)
+                
             case "Whisky":
                 data = build_dict("Whisky", get_mano_jugador(idJugador))
                 await self.broadcast(data,idPartida)
