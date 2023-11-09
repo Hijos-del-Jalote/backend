@@ -81,13 +81,20 @@ async def obtener_partida(id: int) -> PartidaResponse:
     return partidaResp
 
 
-@partidas_router.put("/iniciar", status_code=status.HTTP_200_OK)
-async def iniciar_partida(idPartida: int):
+@partidas_router.put("/iniciar/{idPartida}/", status_code=status.HTTP_200_OK)
+async def iniciar_partida(idPartida:int , idJugador: int ):
     with db_session:
         partida = Partida.get(id=idPartida)
         if not partida: 
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                     detail="No existe partida con ese id")
+        jugador= Jugador.get(id=idJugador)
+        if not jugador:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail="No existe jugador con ese id")
+        if jugador.isHost == False:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="El jugador no es el host")
         
         if partida.iniciada:  
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -187,22 +194,15 @@ async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la
 
 def get_winners(idPartida: int, idJugador: int) -> tuple:
     with db_session:
-        jugadores = Partida.get(id=idPartida).jugadores
-        humanos = []
-        isLacosaAlive = True
-        infectados = []
-        for jugador in jugadores:
-            if jugador.Rol == "Humano":
-                humanos.append(jugador.id)
-            if jugador.Rol == "La cosa" and not jugador.isAlive:
-                isLacosaAlive = False
-            if jugador.Rol == "Infectado" and jugador.isAlive:
-                infectados.append(jugador.id)
-            if jugador.Rol == "La cosa":
-                infectados.append(jugador.id)
-    if len(infectados)==1 and isLacosaAlive: # todos muertos menos la cosa
-        return (sorted(infectados), "la cosa")           
-    elif not isLacosaAlive: # muere la cosa
+        partida = Partida.get(id=idPartida)
+        jugadores = partida.jugadores
+        lacosa = get(j for j in jugadores if j.Rol == Rol.lacosa)
+        muertos = select(j for j in jugadores if not j.isAlive)
+        humanos = select(j.id for j in jugadores if j.Rol == Rol.humano)
+    
+    if len(jugadores)-1==len(muertos) and lacosa.isAlive: # todos muertos menos la cosa
+        return ([lacosa.id], "cosos")           
+    if not lacosa.isAlive: # muere la cosa
         return (sorted(humanos), "humanos")
     else:
         return ([], "no termino")

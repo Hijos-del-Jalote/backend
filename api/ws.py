@@ -53,15 +53,10 @@ class ConnectionManager:
     # Método para obtener datos de la cola
     async def get_from_message_queue(self, idPartida: int, idJugador: int):
         if idPartida in self.message_queues and idJugador in self.message_queues[idPartida]:
-            # while True:
-            #     try:
-            #         data = await asyncio.wait_for(self.message_queues[idPartida][idJugador].get(),timeout=0.5)
-            #         return data
-            #     except Exception:
-            #         pass
-
-            # esto de abajo asi tal cual anda en simulación a mano, pero se tilda en el test (quizás por el multi threading) 
-            return await self.message_queues[idPartida][idJugador].get()
+            resp = None
+            while resp == None:
+                resp = await self.message_queues[idPartida][idJugador].get()
+            return resp
 
 
 
@@ -123,12 +118,18 @@ class ConnectionManager:
             case "fin turno jugar":
                 data = build_dict("fin_turno_jugar", get_partida(idPartida).model_dump_json())
                 await self.broadcast(data, idPartida)
-            case "analisis":
-                data = build_dict("analisis", get_mano_jugador(idObjetivo))
+            case "Analisis":
+                data = build_dict("Analisis", get_mano_jugador(idObjetivo))
                 await self.personal_msg(data,idPartida,idJugador)
             case "chat_msg":
                 data = build_dict("chat_msg", msg_data(msg,idJugador, False))
                 await self.broadcast(data, idPartida)
+            case "Whisky":
+                data = build_dict("Whisky", get_mano_jugador(idJugador))
+                await self.broadcast(data,idPartida)
+            case "sospecha":
+                data = build_dict("sospecha", get_mano_jugador(idObjetivo))
+                await self.personal_msg(data, idPartida, idJugador)
             case _:
                 print("El resto")
 
