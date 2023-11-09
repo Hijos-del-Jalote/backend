@@ -6,7 +6,7 @@ from db.cartas_session import *
 from db.partidas_session import *
 from .schemas import *
 import random
-from api.ws import manager
+from api.ws import manager, manager_chat
 from fastapi.websockets import *
 from typing import List
 import asyncio
@@ -155,6 +155,16 @@ async def websocket_endpoint(websocket: WebSocket, idPartida: int, idJugador: in
             await manager.put_in_message_queue(idPartida,idJugador,data)
     except WebSocketDisconnect:
         await manager.disconnect(idPartida, idJugador)
+
+@partidas_router.websocket("/{idPartida}/ws/chat")
+async def websocket_endpoint_chat(websocket: WebSocket, idPartida: int, idJugador: int):
+    await manager_chat.connect(websocket, idPartida, idJugador)
+    try:
+        while True:
+            msg = await websocket.receive_text()
+            await manager_chat.handle_data("chat_msg",idPartida,idJugador,msg=msg)
+    except WebSocketDisconnect:
+        await manager.disconnect(idPartida,idJugador)
 
 async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la ultima carta
 

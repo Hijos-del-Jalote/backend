@@ -5,6 +5,7 @@ from db.models import *
 from db.partidas_session import get_partida, fin_partida_respond, get_jugadores_partida
 from db.jugadores_session import get_abandonarlobby_data
 from db.cartas_session import carta_data, get_mano_jugador, puede_intercambiar_infectado
+from db.utils import msg_data
 import asyncio
 import json
 
@@ -125,11 +126,14 @@ class ConnectionManager:
             case "analisis":
                 data = build_dict("analisis", get_mano_jugador(idObjetivo))
                 await self.personal_msg(data,idPartida,idJugador)
+            case "chat_msg":
+                data = build_dict("chat_msg", msg_data(msg,idJugador, False))
+                await self.broadcast(data, idPartida)
             case _:
                 print("El resto")
 
 manager = ConnectionManager()
-
+manager_chat = ConnectionManager()
 
 def build_dict(event: str,data):
     return {"event": event,
