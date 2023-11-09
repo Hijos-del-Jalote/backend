@@ -115,7 +115,10 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                 if carta.template_carta.nombre == "Infectado" and not puede_intercambiar_infectado(jugador,jugObj): 
                     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="Jugador 1 no puede intercambiar una carta de infectado")
-
+                if carta.template_carta.nombre == "La cosa":
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                        detail="No se puede intercambiar la carta La Cosa")
+                    
                 if (partida.ultimaJugada != "Seduccion") & (not es_siguiente(jugador,jugObj)):
                     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="Sólo puede intercambiar con el siguiente jugador")
