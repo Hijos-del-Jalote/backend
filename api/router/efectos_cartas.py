@@ -145,6 +145,15 @@ async def sospecha(idPartida, idObjetivo, idJugador):
     else:
         raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")        
     
+
+def cuerdas_podridas(idPartida):
+    partida = Partida.get(id=idPartida)
+    if not partida:
+        raise HTTPException(status_code=400, detail="Partida no existente")
+    else:
+        for j in partida.jugadores:
+            j.cuarentena = False
+
 async def entre_nosotros(idPartida, idObjetivo, idJugador):
     if son_adyacentes(Jugador.get(id=idObjetivo), Jugador.get(id=idJugador))[0]:
         await manager.handle_data("Que quede entre nosotros", idPartida,idJugador=idJugador ,idObjetivo=idObjetivo)
@@ -155,3 +164,4 @@ async def analisis(idPartida, idObjetivo,idJugador,):
         await manager.handle_data("Analisis", idPartida, idObjetivo=idObjetivo , idJugador=idJugador)
     else:
         raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")
+
