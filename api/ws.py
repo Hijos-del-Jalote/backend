@@ -117,8 +117,8 @@ class ConnectionManager:
             case "fin turno jugar":
                 data = build_dict("fin_turno_jugar", get_partida(idPartida).model_dump_json())
                 await self.broadcast(data, idPartida)
-            case "analisis":
-                data = build_dict("analisis", get_mano_jugador(idObjetivo))
+            case "Analisis":
+                data = build_dict("Analisis", get_mano_jugador(idObjetivo))
                 await self.personal_msg(data,idPartida,idJugador)
             case "Whisky":
                 data = build_dict("Whisky", get_mano_jugador(idJugador))
@@ -126,6 +126,12 @@ class ConnectionManager:
             case "sospecha":
                 data = build_dict("sospecha", get_mano_jugador(idObjetivo))
                 await self.personal_msg(data, idPartida, idJugador)
+            case "Ups":
+                data = build_dict("Ups", get_mano_jugador(idJugador))
+                await self.broadcast(data,idPartida)
+            case "Que quede entre nosotros":
+                data = build_dict("Que quede entre nosotros", get_mano_jugador(idJugador))
+                await self.personal_msg(data, idPartida , idObjetivo)
             case _:
                 print("El resto")
 

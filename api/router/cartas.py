@@ -69,13 +69,20 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                     case "Puerta trancada":
                         efectos_cartas.puerta_trancada(jugador, Jugador[id_objetivo])
                     case "Analisis":
-                        manager.handle_data("analisis",partida.id,idJugador,idObjetivo=id_objetivo)
+                        await efectos_cartas.analisis(partida.id, id_objetivo, idJugador)
                     case "Whisky":
                         await manager.handle_data("Whisky",partida.id,idJugador)   
                     case "Sospecha":
                         await efectos_cartas.sospecha(partida.id, id_objetivo, idJugador)
                     case "Cuerdas podridas":
                         efectos_cartas.cuerdas_podridas(partida.id)
+                    case "Ups":
+                        await manager.handle_data("Ups",partida.id,idJugador)
+                    case "Que quede entre nosotros":
+                        await efectos_cartas.entre_nosotros(partida.id, id_objetivo, idJugador)
+
+                        
+
 
             partida.ultimaJugada = carta.template_carta.nombre        
             if(jugador.isAlive):
