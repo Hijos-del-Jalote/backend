@@ -69,7 +69,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                     case "Puerta trancada":
                         efectos_cartas.puerta_trancada(jugador, Jugador[id_objetivo])
                     case "Analisis":
-                        manager.handle_data("analisis",partida.id,idJugador,idObjetivo=id_objetivo)
+                        await efectos_cartas.analisis(partida.id, id_objetivo, idJugador)
                     case "Whisky":
                         await manager.handle_data("Whisky",partida.id,idJugador)   
                     case "Sospecha":
