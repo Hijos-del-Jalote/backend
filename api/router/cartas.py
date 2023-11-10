@@ -74,8 +74,11 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                         await manager.handle_data("Whisky",partida.id,idJugador)   
                     case "Sospecha":
                         await efectos_cartas.sospecha(partida.id, id_objetivo, idJugador)
+                    case "Ups":
+                        await manager.handle_data("Ups",partida.id,idJugador)
                     case "Que quede entre nosotros":
                         await efectos_cartas.entre_nosotros(partida.id, id_objetivo, idJugador)
+
                         
 
             partida.ultimaJugada = carta.template_carta.nombre        
