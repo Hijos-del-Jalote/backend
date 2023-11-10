@@ -7,8 +7,7 @@ from db.models import *
 
 client = TestClient(app)
 
-
-def test_efecto_mas_vale_que_corras(cleanup_db_after_test):
+def populate_db():
     with db_session(optimistic=False):
         l = False
         #Crear template de una carta vigila tus espaldas si no existe
@@ -30,22 +29,21 @@ def test_efecto_mas_vale_que_corras(cleanup_db_after_test):
         db.commit()
         partida.turnoActual = jugador1.id
         db.commit()
-        #Jugar carta
-        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador3.id}&test=True')
-        assert(response.status_code == 200)
-        #Pedir info de jugadores.
-        response_jugador1 = client.get(f'jugadores/{jugador1.id}')
-        response_jugador3 = client.get(f'jugadores/{jugador3.id}')
-        #Checkear que se hayan intercambiado las posiciones.
-        assert((response_jugador1.json()["posicion"] == 2) & (response_jugador3.json()["posicion"] == 0))
-        #jugar entre jugadores no adyacentes
+        return l, template_carta, jugador1, jugador2, jugador3, partida, carta
+
+def test_efecto_mas_vale_que_corras(cleanup_db_after_test):
+    with db_session(optimistic=False):
+        
+        flag, template_carta, jugador1, jugador2, jugador3, partida, carta = populate_db()
+        
+        jugar_exitoso(carta, jugador1, jugador3)
+        
         carta.jugador = jugador1
         db.commit()
-        #Jugar carta nuevamente, el jugador 2 esta en cuarentena y no deberia poder jugarse
-        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}&test=True')
-        assert(response.status_code == 400)        
+                
+        jugar_jugador_cuarentena(carta, jugador2)
         
-        if l:
+        if flag:
             template_carta.delete()
         jugador1.delete()
         jugador2.delete()
@@ -53,3 +51,17 @@ def test_efecto_mas_vale_que_corras(cleanup_db_after_test):
         partida.delete()
         carta.delete()
 
+def jugar_jugador_cuarentena(carta, jugador2):
+    #Jugar carta nuevamente, el jugador 2 esta en cuarentena y no deberia poder jugarse
+    response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}&test=True')
+    assert(response.status_code == 400)
+
+def jugar_exitoso(carta, jugador1, jugador3):
+    #Jugar carta
+    response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador3.id}&test=True')
+    assert(response.status_code == 200)
+    #Pedir info de jugadores.
+    response_jugador1 = client.get(f'jugadores/{jugador1.id}')
+    response_jugador3 = client.get(f'jugadores/{jugador3.id}')
+    #Checkear que se hayan intercambiado las posiciones.
+    assert((response_jugador1.json()["posicion"] == 2) & (response_jugador3.json()["posicion"] == 0))

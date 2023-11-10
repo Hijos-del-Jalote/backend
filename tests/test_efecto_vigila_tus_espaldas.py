@@ -7,8 +7,7 @@ from db.models import *
 
 client = TestClient(app)
 
-@db_session
-def test_efecto_vigila_tus_espaldas(cleanup_db_after_test):
+def populate_db():
     with db_session:
         l = False
         #Crear template de una carta vigila tus espaldas si no existe
@@ -26,27 +25,42 @@ def test_efecto_vigila_tus_espaldas(cleanup_db_after_test):
         db.commit()
         partida.turnoActual=jugador1.id
         db.commit()
-        #Jugar carta
-        response = client.post(f'cartas/jugar?id_carta={carta.id}')
-        assert(response.status_code == 200)
-        #Pedir info de la partida cambiada
-        response_partida = client.get(f'partidas/{partida.id}')
-        #Checkear que se haya cambiado el sentido de la partida, deberia ser true
-        assert(response_partida.json()["sentido"] == True)
+        return l, template_carta, jugador1, partida, carta
+
+@db_session
+def test_efecto_vigila_tus_espaldas(cleanup_db_after_test):
+    with db_session:
+        
+        flag, template_carta, jugador1, partida, carta = populate_db()
+        
+        jugar_carta_exitoso_sentido1(carta, partida)
+        
         #Asignar la carta nuevamente
         carta = Carta(descartada=False, template_carta=template_carta, partida=partida, jugador=jugador1)
         db.commit()
-        #Jugar carta nuevamente
-        response = client.post(f'cartas/jugar?id_carta={carta.id}')
-        assert(response.status_code == 200)
-        #Pedir info de la partida cambiada
-        response_partida = client.get(f'partidas/{partida.id}')
-        #Ahora el sentido deberia ser False 
-        assert(response_partida.json()["sentido"] == False)
         
-        if l:
+        jugar_carta_exitoso_sentido2(carta, partida)
+        
+        if flag:
             template_carta.delete()
         jugador1.delete()
         partida.delete()
         carta.delete()
 
+def jugar_carta_exitoso_sentido1(carta, partida):    
+    #Jugar carta
+    response = client.post(f'cartas/jugar?id_carta={carta.id}')
+    assert(response.status_code == 200)
+    #Pedir info de la partida cambiada
+    response_partida = client.get(f'partidas/{partida.id}')
+    #Checkear que se haya cambiado el sentido de la partida, deberia ser true
+    assert(response_partida.json()["sentido"] == True)
+    
+def jugar_carta_exitoso_sentido2(carta, partida):
+    #Jugar carta nuevamente
+    response = client.post(f'cartas/jugar?id_carta={carta.id}')
+    assert(response.status_code == 200)
+    #Pedir info de la partida cambiada
+    response_partida = client.get(f'partidas/{partida.id}')
+    #Ahora el sentido deberia ser False 
+    assert(response_partida.json()["sentido"] == False)

@@ -7,8 +7,7 @@ from db.models import *
 
 client = TestClient(app)
 
-
-def test_efecto_lanzallamas(cleanup_db_after_test):
+def populate_db():
     with db_session:
         l = False
         #Crear template de una carta lanzallamas si no existe
@@ -28,20 +27,37 @@ def test_efecto_lanzallamas(cleanup_db_after_test):
         db.commit()
         partida.turnoActual=jugador1.id
         db.commit()
-        #Jugar carta contra el jugador 2
-        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}&test=True')
-        assert(response.status_code == 200)
-        #Jugar carta sin pasar objetivo
-        response = client.post(f'cartas/jugar?id_carta={carta.id}')
-        assert(response.status_code == 400)
-        #Jugar carta pasando objetivo inexistente
-        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={-1}&test=True')
-        assert(response.status_code == 400)
+        return l, template_carta, jugador1, jugador2, partida, carta
+
+def test_efecto_lanzallamas(cleanup_db_after_test):
+    with db_session:
         
-        if l:
+        flag, template_carta, jugador1, jugador2, partida, carta = populate_db()
+        
+        jugar_carta_exitoso(carta, jugador2)
+        
+        jugar_carta_no_objetivo(carta)
+        
+        jugar_carta_falso_objetivo(carta)
+        
+        if flag:
             template_carta.delete()
         jugador1.delete()
         jugador2.delete()
         partida.delete()
         carta.delete()
 
+def jugar_carta_falso_objetivo(carta):
+    #Jugar carta pasando objetivo inexistente
+    response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={-1}&test=True')
+    assert(response.status_code == 400)
+
+def jugar_carta_no_objetivo(carta):
+    #Jugar carta sin pasar objetivo
+    response = client.post(f'cartas/jugar?id_carta={carta.id}')
+    assert(response.status_code == 400)
+
+def jugar_carta_exitoso(carta, jugador2):
+    #Jugar carta contra el jugador 2
+    response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}&test=True')
+    assert(response.status_code == 200)

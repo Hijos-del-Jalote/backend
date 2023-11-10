@@ -27,28 +27,40 @@ def test_jugar_carta(cleanup_db_after_test):
         db.commit()
         partida.turnoActual=jugador.id+1
         db.commit()
-        #Jugar carta, Deberia dar error ya que no es el turno del jugador
-        response = client.post(f'cartas/jugar?id_carta={carta.id}')
-        assert(response.status_code == 400)
-        partida.turnoActual=jugador.id
-        db.commit()
         
-
-        #El jugador deberia jugar la carta correctamente
-        response = client.post(f'cartas/jugar?id_carta={carta.id}')
-        assert(response.status_code == 200)
-
+        jugar_carta_no_turno(carta)
+        jugar_carta_correctamente(carta, partida, jugador)
+        jugar_carta_sin_dueño(carta)
+        jugar_carta_inexistente()
         
-        #Jugar la carta nuevamente -> deberia dar error ya que la carta no pertenece a ningun jugador.
-        response = client.post(f'cartas/jugar?id_carta={carta.id}')
-        assert(response.status_code == 400)
-        #Jugar carta inexistente -> deberia dar error
-        response = client.post('cartas/jugar?id_carta=1000000')
-        assert(response.status_code == 400)
-
-
         if l:
             template_carta.delete()
         jugador.delete()
         partida.delete()
         carta.delete()
+        
+def jugar_carta_no_turno(carta):  
+    #Jugar carta, Deberia dar error ya que no es el turno del jugador
+    response = client.post(f'cartas/jugar?id_carta={carta.id}')
+    assert(response.status_code == 400)
+    
+def jugar_carta_correctamente(carta, partida, jugador):
+    with db_session:
+        partida.turnoActual=jugador.id
+        db.commit()
+        #El jugador deberia jugar la carta correctamente
+        response = client.post(f'cartas/jugar?id_carta={carta.id}')
+        assert(response.status_code == 200)
+
+def jugar_carta_sin_dueño(carta):        
+    #Jugar la carta nuevamente -> deberia dar error ya que la carta no pertenece a ningun jugador.
+    response = client.post(f'cartas/jugar?id_carta={carta.id}')
+    assert(response.status_code == 400)
+    
+def jugar_carta_inexistente():
+    #Jugar carta inexistente -> deberia dar error
+    response = client.post('cartas/jugar?id_carta=1000000')
+    assert(response.status_code == 400)
+
+
+        

@@ -23,36 +23,37 @@ def test_iniciar_partida(cleanup_db_after_test):
     partida = random_user()
     host = jugadores[0]
     db.commit()
-    
-    response = client.put(f"partidas/iniciar/{2121}?idJugador={host.id}")  
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-    
+
+    iniciar_partida_inextistente(host)
     # creo partida
     response = client.post(f'partidas/?nombrePartida={partida}&idHost={host.id}') 
 
     with db_session:
         partida = Partida.get(id = response.json()["idPartida"])
-    # host no es host
-    response = client.put(f"partidas/iniciar/{partida.id}?idJugador={jugadores[1].id}")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    # cantidad incorrecta de jugadores
-    response = client.put(f"partidas/iniciar/{partida.id}?idJugador={host.id}")  
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    
+    no_host_inicia_partida(jugadores, partida)
+
+    cantidad_incorrecta_jugadores(partida, host)
     
     # uno jugadores a partida
     for i in range(1,4):
         client.post(f"partidas/unir?idPartida={partida.id}&idJugador={jugadores[i].id}")
+
+    iniciar_partida_correcta(partida, host)
     
+    # partida ya iniciada
+    response = client.put(f"partidas/iniciar/{partida.id}?idJugador={host.id}")  
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+ 
+def iniciar_partida_correcta(partida, host):   
     # partida correcta
     response = client.put(f"partidas/iniciar/{partida.id}?idJugador={host.id}")  
-    assert response.status_code == status.HTTP_200_OK
-    
+    assert response.status_code == status.HTTP_200_OK 
     # verifico que se haya iniciado
     with db_session:
         partida = Partida.get(id = partida.id)
         jugadores = list(partida.jugadores)
     assert partida.iniciada == True
-
     # verifico que tengan posicion , rol por defecto y el resto de atributos en default
     posiciones = set()
     cant_cosas = 0
@@ -66,10 +67,18 @@ def test_iniciar_partida(cleanup_db_after_test):
         assert jugador.cuarentena == False
         if jugador.Rol == "La cosa":
             cant_cosas += 1
-
     assert cant_cosas == 1
     
-    # partida ya iniciada
+def cantidad_incorrecta_jugadores(partida, host):    
+    # cantidad incorrecta de jugadores
     response = client.put(f"partidas/iniciar/{partida.id}?idJugador={host.id}")  
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_400_BAD_REQUEST    
+    
+def no_host_inicia_partida(jugadores, partida):
+    # host no es host
+    response = client.put(f"partidas/iniciar/{partida.id}?idJugador={jugadores[1].id}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST    
 
+def iniciar_partida_inextistente(host):  
+    response = client.put(f"partidas/iniciar/{2121}?idJugador={host.id}")  
+    assert response.status_code == status.HTTP_404_NOT_FOUND

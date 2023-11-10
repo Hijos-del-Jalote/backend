@@ -7,8 +7,7 @@ from db.models import *
 
 client = TestClient(app)
 
-
-def test_efecto_puerta_trancada(cleanup_db_after_test):
+def populate_db():
     with db_session(optimistic=False):
         l = False
         #Crear template de una carta si no existe
@@ -28,14 +27,16 @@ def test_efecto_puerta_trancada(cleanup_db_after_test):
         db.commit()
         partida.turnoActual=jugador1.id
         db.commit()
-        #Jugar carta
-        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}&test=True')
-        assert(response.status_code == 200)
-        #Traigo los jugadores.
-        response_jugador1 = client.get(f'jugadores/{jugador1.id}')
-        response_jugador2 = client.get(f'jugadores/{jugador2.id}')
-        #Me fijo que se hayan hecho los bloqueos
-        assert((response_jugador1.json()["blockDer"]  == True) & (response_jugador1.json()["blockIzq"]  == True) & (response_jugador2.json()["blockDer"]  == True) & (response_jugador2.json()["blockIzq"]  == True))
+        return jugador1, jugador2, partida, carta, l, template_carta
+
+
+def test_efecto_puerta_trancada(cleanup_db_after_test):
+    with db_session(optimistic=False):
+        
+        
+        jugador1, jugador2, partida, carta, flag, template_carta = populate_db()
+        
+        jugar_carta_exito_2_jugadores(carta, jugador1, jugador2)
         
         #Pruebo con 1 jugador más
         jugador3 = Jugador(nombre="Nico", isHost=False, isAlive=True, blockIzq=False, blockDer=False, Posicion=2, partida = partida)
@@ -47,7 +48,20 @@ def test_efecto_puerta_trancada(cleanup_db_after_test):
         jugador2.blockIzq = False
         partida.turnoActual=jugador1.id
         partida.cantidadVivos = 3
-        db.commit()       
+        db.commit() 
+        
+        jugar_carta_exito_3_jugadores(carta, jugador1, jugador2, jugador3)
+        
+ 
+        if flag:
+            template_carta.delete()
+        jugador1.delete()
+        jugador2.delete()
+        jugador3.delete()
+        partida.delete()
+        carta.delete()
+
+def jugar_carta_exito_3_jugadores(carta, jugador1, jugador2, jugador3):
         #Jugar carta
         response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador3.id}&test=True') 
         assert(response.status_code == 200)
@@ -56,12 +70,14 @@ def test_efecto_puerta_trancada(cleanup_db_after_test):
         response_jugador2 = client.get(f'jugadores/{jugador2.id}')
         response_jugador3 = client.get(f'jugadores/{jugador3.id}')
         #Me fijo que se hayan hecho los bloqueos
-        assert((response_jugador1.json()["blockDer"]  == False) & (response_jugador1.json()["blockIzq"]  == True) & (response_jugador2.json()["blockDer"]  == False) & (response_jugador2.json()["blockIzq"]  == False) & (response_jugador3.json()["blockDer"]  == True) & (response_jugador3.json()["blockIzq"]  == False)) 
-        if l:
-            template_carta.delete()
-        jugador1.delete()
-        jugador2.delete()
-        jugador3.delete()
-        partida.delete()
-        carta.delete()
+        assert((response_jugador1.json()["blockDer"]  == False) & (response_jugador1.json()["blockIzq"]  == True) & (response_jugador2.json()["blockDer"]  == False) & (response_jugador2.json()["blockIzq"]  == False) & (response_jugador3.json()["blockDer"]  == True) & (response_jugador3.json()["blockIzq"]  == False))
 
+def jugar_carta_exito_2_jugadores(carta, jugador1, jugador2):
+    #Jugar carta
+    response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}&test=True')
+    assert(response.status_code == 200)
+    #Traigo los jugadores.
+    response_jugador1 = client.get(f'jugadores/{jugador1.id}')
+    response_jugador2 = client.get(f'jugadores/{jugador2.id}')
+    #Me fijo que se hayan hecho los bloqueos
+    assert((response_jugador1.json()["blockDer"]  == True) & (response_jugador1.json()["blockIzq"]  == True) & (response_jugador2.json()["blockDer"]  == True) & (response_jugador2.json()["blockIzq"]  == True))
