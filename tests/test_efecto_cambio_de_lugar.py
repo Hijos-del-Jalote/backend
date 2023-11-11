@@ -7,88 +7,71 @@ from db.models import *
 
 client = TestClient(app)
 
-def populate_db():
-    with db_session(optimistic=False):
-        l = False
-        #Crear template de una carta vigila tus espaldas si no existe
-        if not TemplateCarta.exists(nombre="Cambio de lugar"):
-            template_carta = TemplateCarta(nombre="Cambio de lugar", descripcion="Esta es una carta de prueba", tipo=Tipo_Carta.accion)
-            l = True
-        else:
-            template_carta = TemplateCarta.get(nombre="Cambio de lugar")
-        #Crear un jugador que jugara la carta
-        jugador1 = Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=False, Posicion=0)
-        #Crear un jugador que recibira el efecto
-        jugador2 = Jugador(nombre="Chun", isHost=False, isAlive=True, blockIzq=False, blockDer=False, Posicion=1)
-        #Crear un jugador que recibira el efecto
-        jugador3 = Jugador(nombre="Nico", isHost=False, isAlive=True, blockIzq=False, blockDer=False, Posicion=2)
-        #Crear un jugador que recibira el efecto
-        jugador4 = Jugador(nombre="Gonza", isHost=False, isAlive=True, blockIzq=False, blockDer=False, Posicion=3)
-        #Crear una partida con jugadores
-        partida = Partida(nombre="Partida", maxJug=5, minJug=1, sentido=False, iniciada=True, cantidadVivos=4, jugadores={jugador1, jugador2, jugador3, jugador4})
-        #Crear carta y asignarsela al jugador1 y partida
-        carta = Carta(descartada=False, template_carta=template_carta, partida=partida, jugador=jugador1)
-        db.commit()
-        partida.turnoActual=jugador1.id
-        db.commit()
-        return l, template_carta, jugador1, jugador2, jugador3, jugador4, partida, carta
+def dar_cartas():
+    with db_session:
+        cartaj1 = Carta(id=1000,
+                        template_carta = "Cambio de lugar",
+                        jugador=Jugador[1],
+                        partida=Partida[1])
+        cartaj2 = Carta(id=1001,
+                        template_carta = "Seduccion",
+                        jugador=Jugador[2],
+                        partida=Partida[1])
 
-def test_efecto_cambio_de_lugar(cleanup_db_after_test):
-    with db_session(optimistic=False):
-    
-        flag, template_carta, jugador1, jugador2, jugador3, jugador4, partida, carta = populate_db()
+@db_session
+def test_jugar_objetivo_en_cuarentena(setup_db_before_test, cleanup_db_after_test):
+    dar_cartas()
+    Jugador[1].Posicion = 0
+    Jugador[2].Posicion = 1
+    Jugador[2].cuarentena = True
+    Partida[1].turnoActual = Jugador[1].id
+    Partida[1].cantidadVivos = 4
+    db.commit()
+    #Jugar carta 
+    response = client.post(f'cartas/jugar?id_carta={1000}&id_objetivo={Jugador[2].id}&test=True')
+    assert(response.status_code == 400) & (response.text == '{"detail":"Los jugadores no son adyacentes | El jugador objetivo esta en cuarentena | Hay una puerta trancada de por medio"}') 
         
-        jugar_carta_exitoso(carta, jugador1, jugador2)
-        
-        jugar_no_adyacente(carta, jugador1, jugador4)
-        
-        jugar_puerta_trancada(carta, jugador1, jugador2)
-        
-        jugar_objetivo_en_cuarentena(carta, jugador1, jugador2)
-        
-        if flag:
-            template_carta.delete()
-        jugador1.delete()
-        jugador2.delete()
-        jugador3.delete()
-        jugador4.delete()
-        partida.delete()
-        carta.delete()
-       
-def jugar_objetivo_en_cuarentena(carta, jugador1, jugador2):
-    #Hacer que jugador objetivo este en cuarentena
-    jugador2.cuarentena = True
-    jugador1.blockIzq = False
-    carta.jugador = jugador1
+@db_session        
+def test_jugar_puerta_trancada(setup_db_before_test, cleanup_db_after_test):
+    dar_cartas()
+    Jugador[1].Posicion = 0
+    Jugador[2].Posicion = 1
+    Jugador[2].blockIzq = True
+    #Jugador[1].blockDer = True
+    Partida[1].turnoActual = Jugador[1].id
+    Partida[1].cantidadVivos = 4
     db.commit()
     #Jugar carta nuevamente
-    response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}&test=True')
-    assert(response.status_code == 400)
-        
-        
-def jugar_puerta_trancada(carta, jugador1, jugador2):
-    #Hacer que haya una puerta trancada de por medio
-    jugador1.blockIzq = True
-    carta.jugador = jugador1
+    response = client.post(f'cartas/jugar?id_carta={1000}&id_objetivo={Jugador[2].id}&test=True')
+    assert(response.status_code == 400) & (response.text == '{"detail":"Los jugadores no son adyacentes | El jugador objetivo esta en cuarentena | Hay una puerta trancada de por medio"}')
+
+@db_session                
+def test_jugar_no_adyacente(setup_db_before_test, cleanup_db_after_test):
+    dar_cartas()
+    Jugador[1].Posicion = 0
+    Jugador[3].Posicion = 2
+    Partida[1].turnoActual = Jugador[1].id
+    Partida[1].cantidadVivos = 4
     db.commit()
+
     #Jugar carta nuevamente
-    response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}&test=True')
-    assert(response.status_code == 400)
-        
-def jugar_no_adyacente(carta, jugador1, jugador4):
-    #jugar entre jugadores no adyacentes
-    carta.jugador = jugador1
-    db.commit()
-    #Jugar carta nuevamente
-    response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador4.id}&test=True')
-    assert(response.status_code == 400)
+    response = client.post(f'cartas/jugar?id_carta={1000}&id_objetivo={Jugador[3].id}&test=True')
+    assert(response.status_code == 400) & (response.text == '{"detail":"Los jugadores no son adyacentes | El jugador objetivo esta en cuarentena | Hay una puerta trancada de por medio"}')
            
-def jugar_carta_exitoso(carta, jugador1, jugador2):
+@db_session
+def test_jugar_carta_exitoso(setup_db_before_test, cleanup_db_after_test):
+    dar_cartas()
+    Jugador[1].Posicion = 0
+    Jugador[2].Posicion = 1
+    #Jugador[1].blockDer = True
+    Partida[1].turnoActual = Jugador[1].id
+    Partida[1].cantidadVivos = 4
+    db.commit()
     #Jugar carta
-    response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}&test=True')
+    response = client.post(f'cartas/jugar?id_carta={1000}&id_objetivo={Jugador[2].id}&test=True')
     assert(response.status_code == 200)
     #Pedir info de jugadores.
-    response_jugador1 = client.get(f'jugadores/{jugador1.id}')
-    response_jugador2 = client.get(f'jugadores/{jugador2.id}')
+    response_jugador1 = client.get(f'jugadores/{Jugador[1].id}')
+    response_jugador2 = client.get(f'jugadores/{Jugador[2].id}')
     #Checkear que se hayan intercambiado las posiciones.
     assert((response_jugador1.json()["posicion"] == 1) & (response_jugador2.json()["posicion"] == 0))

@@ -52,7 +52,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                         efectos_cartas.cambio_de_lugar(jugador, Jugador[id_objetivo])
                     case "Mas vale que corras":
                         efectos_cartas.mas_vale_que_corras(jugador, Jugador[id_objetivo])
-                    case "Puerta trancada":
+                    case "Puerta atrancada":
                         efectos_cartas.puerta_trancada(jugador, Jugador[id_objetivo])
                     case "Analisis":
                         manager.handle_data("analisis",partida.id,idJugador,idObjetivo=id_objetivo)

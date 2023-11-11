@@ -12,6 +12,7 @@ from api.router.cartas import *
 
 client = TestClient(app)
 
+
 def populate_db():
     with db_session:
         crear_templates_cartas()

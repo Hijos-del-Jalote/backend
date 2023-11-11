@@ -7,60 +7,43 @@ from db.models import *
 
 client = TestClient(app)
 
-def populate_db():
+def dar_cartas():
     with db_session:
-        l = False
-        #Crear template de una carta vigila tus espaldas si no existe
-        if not TemplateCarta.exists(nombre="Vigila tus espaldas"):
-            template_carta = TemplateCarta(nombre="Vigila tus espaldas", descripcion="Esta es una carta de prueba", tipo=Tipo_Carta.accion)
-            l = True
-        else:
-            template_carta = TemplateCarta.get(nombre="Vigila tus espaldas")
-        #Crear un jugador que jugara la carta
-        jugador1 = Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=False, Posicion=0)
-        #Crear una partida con jugadores
-        partida = Partida(nombre="Partida", maxJug=5, minJug=1, sentido=False, iniciada=True, jugadores={jugador1})
-        #Crear carta y asignarsela al jugador1 y partida
-        carta = Carta(descartada=False, template_carta=template_carta, partida=partida, jugador=jugador1)
-        db.commit()
-        partida.turnoActual=jugador1.id
-        db.commit()
-        return l, template_carta, jugador1, partida, carta
+        cartaj1 = Carta(id=1000,
+                        template_carta = "Vigila tus espaldas",
+                        jugador=Jugador[1],
+                        partida=Partida[1])
+        cartaj2 = Carta(id=1001,
+                        template_carta = "Vigila tus espaldas",
+                        jugador=Jugador[5],
+                        partida=Partida[1])
+
+
 
 @db_session
-def test_efecto_vigila_tus_espaldas(cleanup_db_after_test):
-    with db_session:
-        
-        flag, template_carta, jugador1, partida, carta = populate_db()
-        
-        jugar_carta_exitoso_sentido1(carta, partida)
-        
-        #Asignar la carta nuevamente
-        carta = Carta(descartada=False, template_carta=template_carta, partida=partida, jugador=jugador1)
-        db.commit()
-        
-        jugar_carta_exitoso_sentido2(carta, partida)
-        
-        if flag:
-            template_carta.delete()
-        jugador1.delete()
-        partida.delete()
-        carta.delete()
-
-def jugar_carta_exitoso_sentido1(carta, partida):    
+def test_jugar_carta_exitoso_sentido1(setup_db_before_test, cleanup_db_after_test):    
+    dar_cartas()
+    Partida[1].turnoActual = Jugador[1].id
+    Partida[1].sentido= False
+    db.commit()
     #Jugar carta
-    response = client.post(f'cartas/jugar?id_carta={carta.id}')
+    response = client.post(f'cartas/jugar?id_carta={1000}')
     assert(response.status_code == 200)
     #Pedir info de la partida cambiada
-    response_partida = client.get(f'partidas/{partida.id}')
+    response_partida = client.get(f'partidas/{Partida[1].id}')
     #Checkear que se haya cambiado el sentido de la partida, deberia ser true
     assert(response_partida.json()["sentido"] == True)
     
-def jugar_carta_exitoso_sentido2(carta, partida):
+@db_session
+def test_jugar_carta_exitoso_sentido2(setup_db_before_test, cleanup_db_after_test):
+    dar_cartas()
+    Partida[1].turnoActual = Jugador[1].id
+    Partida[1].sentido= False
+    db.commit()
     #Jugar carta nuevamente
-    response = client.post(f'cartas/jugar?id_carta={carta.id}')
+    response = client.post(f'cartas/jugar?id_carta={1000}')
     assert(response.status_code == 200)
     #Pedir info de la partida cambiada
-    response_partida = client.get(f'partidas/{partida.id}')
+    response_partida = client.get(f'partidas/{Partida[1].id}')
     #Ahora el sentido deberia ser False 
-    assert(response_partida.json()["sentido"] == False)
+    assert(response_partida.json()["sentido"] == True)

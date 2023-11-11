@@ -24,26 +24,19 @@ def test_iniciar_partida(cleanup_db_after_test):
     host = jugadores[0]
     db.commit()
 
-    iniciar_partida_inextistente(host)
     # creo partida
     response = client.post(f'partidas/?nombrePartida={partida}&idHost={host.id}') 
 
     with db_session:
         partida = Partida.get(id = response.json()["idPartida"])
     
-    no_host_inicia_partida(jugadores, partida)
-
-    cantidad_incorrecta_jugadores(partida, host)
     
     # uno jugadores a partida
     for i in range(1,4):
         client.post(f"partidas/unir?idPartida={partida.id}&idJugador={jugadores[i].id}")
 
     iniciar_partida_correcta(partida, host)
-    
-    # partida ya iniciada
-    response = client.put(f"partidas/iniciar/{partida.id}?idJugador={host.id}")  
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
  
 def iniciar_partida_correcta(partida, host):   
     # partida correcta
@@ -68,17 +61,26 @@ def iniciar_partida_correcta(partida, host):
         if jugador.Rol == "La cosa":
             cant_cosas += 1
     assert cant_cosas == 1
-    
-def cantidad_incorrecta_jugadores(partida, host):    
-    # cantidad incorrecta de jugadores
-    response = client.put(f"partidas/iniciar/{partida.id}?idJugador={host.id}")  
-    assert response.status_code == status.HTTP_400_BAD_REQUEST    
-    
-def no_host_inicia_partida(jugadores, partida):
-    # host no es host
-    response = client.put(f"partidas/iniciar/{partida.id}?idJugador={jugadores[1].id}")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST    
 
-def iniciar_partida_inextistente(host):  
-    response = client.put(f"partidas/iniciar/{2121}?idJugador={host.id}")  
-    assert response.status_code == status.HTTP_404_NOT_FOUND
+@db_session    
+def test_partida_ya_iniciada(setup_db_before_test, cleanup_db_after_test):
+    # cantidad incorrecta de jugadores
+    response = client.put(f"partidas/iniciar/{Partida[1].id}?idJugador={Jugador[1].id}")  
+    assert (response.status_code == status.HTTP_400_BAD_REQUEST) & (response.text == '{"detail":"Partida ya iniciada"}')    
+
+@db_session    
+def test_cantidad_incorrecta_jugadores(setup_db_before_test, cleanup_db_after_test):
+    # cantidad incorrecta de jugadores
+    response = client.put(f"partidas/iniciar/{Partida[2].id}?idJugador={Jugador[5].id}")  
+    assert (response.status_code == status.HTTP_400_BAD_REQUEST) & (response.text == '{"detail":"Partida no respeta limites jugadores"}')    
+    
+@db_session
+def test_no_host_inicia_partida(setup_db_before_test, cleanup_db_after_test):
+    # host no es host
+    response = client.put(f"partidas/iniciar/{Partida[1].id}?idJugador={Jugador[2].id}")
+    assert (response.status_code == status.HTTP_400_BAD_REQUEST) & (response.text == '{"detail":"El jugador no es el host"}')    
+
+@db_session
+def test_iniciar_partida_inextistente(setup_db_before_test, cleanup_db_after_test):  
+    response = client.put(f"partidas/iniciar/{2121}?idJugador={Jugador[1].id}")  
+    assert (response.status_code == status.HTTP_404_NOT_FOUND) & (response.text == '{"detail":"No existe partida con ese id"}')
