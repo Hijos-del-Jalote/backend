@@ -58,7 +58,7 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                 match carta.template_carta.nombre: 
                 
                     case "Lanzallamas":
-                        efectos_cartas.efecto_lanzallamas(id_objetivo)
+                        efectos_cartas.efecto_lanzallamas(jugador, id_objetivo)
                         await fin_partida(partida.id, idJugador)
                     case "Vigila tus espaldas":
                         efectos_cartas.vigila_tus_espaldas(partida)
@@ -68,6 +68,8 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                         efectos_cartas.mas_vale_que_corras(jugador, Jugador[id_objetivo])
                     case "Puerta atrancada":
                         efectos_cartas.puerta_trancada(jugador, Jugador[id_objetivo])
+                    case "Cuarentena":
+                        efectos_cartas.efecto_cuarentena(jugador, Jugador[id_objetivo])
                     case "Analisis":
                         await efectos_cartas.analisis(partida.id, id_objetivo, idJugador)
                     case "Whisky":
@@ -157,9 +159,11 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
         
         pos_actual = Jugador[partida.turnoActual].Posicion
         if partida.sentido:
-            partida.turnoActual = Jugador.get(Posicion=(pos_actual+1)%partida.cantidadVivos, partida=partida).id
+            siguiente = Jugador.get(Posicion=(pos_actual+1)%partida.cantidadVivos, partida=partida)
         else:
-            partida.turnoActual = Jugador.get(Posicion=(pos_actual-1)%partida.cantidadVivos, partida=partida).id   
+            siguiente = Jugador.get(Posicion=(pos_actual-1)%partida.cantidadVivos, partida=partida)
+        partida.turnoActual = siguiente.id
+        checkeo_cuarentena(siguiente)
                      
         commit()         
     await manager.handle_data("fin_de_turno",carta.partida.id)
@@ -168,3 +172,15 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
 @cartas_router.put("/descartar_carta/{idCarta}", status_code=200)
 def descartar_carta_put(idCarta: int):
     descartar_carta(idCarta)
+ 
+@db_session   
+def checkeo_cuarentena(jugador):
+    if jugador.cuarentena:
+        if jugador.cuarentenaCounter > 0:
+            jugador.cuarentenaCounter -= 1
+            if jugador.cuarentenaCounter == 0:
+                jugador.cuarentena = False
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="Error de flujo del programa; se bajo el contador a 0 pero el jugador sigue en cuarentena")
+                

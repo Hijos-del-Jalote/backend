@@ -35,9 +35,10 @@ def recalcular_posiciones(partida, pos_muerta):
             jugador.Posicion -= 1
             db.commit()
 
-def efecto_lanzallamas(id_objetivo):
+def efecto_lanzallamas(jugador, id_objetivo):
     with db_session:
         if (id_objetivo != None) & (Jugador.exists(id=id_objetivo)):
+            if jugador.cuarentena : raise HTTPException(status_code=400, detail="Jugador en cuarentena no puede eliminar otro jugador")
             objetivo = Jugador[id_objetivo]
             recalcular_posiciones(objetivo.partida, objetivo.Posicion)
             objetivo.isAlive = False
@@ -99,6 +100,7 @@ def intercambiar_posiciones(jugador1, jugador2):
 def cambio_de_lugar(jugador1, jugador2):
     with db_session:
         if jugador1 and jugador2:
+            if jugador1.cuarentena : raise HTTPException(status_code=400, detail="Jugador en cuarentena no puede cambiar de lugar con otro jugador")
             cant = jugador1.partida.cantidadVivos
             ady = son_adyacentes(jugador1, jugador2)
             #ACA SE ASUME QUE SI SENTIDO=TRUE EL SENTIDO DE LA PARTIDA ES ANTIHORARIO, OSEA (POSICION+1 MOD CANT) CORRESPONDE BLOQUEO DE DERECHA Y (POSICION-1 MOD CANT) CORRESPONDE BLOQUEO DE IZQUIERDA 
@@ -116,6 +118,7 @@ def mas_vale_que_corras(jugador1, jugador2):
     with db_session:
         if jugador1 and jugador2:
             if not jugador2.cuarentena:
+                if jugador1.cuarentena : raise HTTPException(status_code=400, detail="Jugador en cuarentena no puede cambiar de lugar con otro jugador")
                 intercambiar_posiciones(jugador1, jugador2)
             else:
                 raise HTTPException(status_code=400, detail="El jugador objetivo esta en cuarentena")
@@ -137,7 +140,19 @@ def efecto_infeccion(id_objetivo, id_jugador):
         else:
             raise HTTPException(status_code=400, detail="Jugador objetivo No existe o No proporcionado")
 
-
+def efecto_cuarentena(jugador, objetivo):
+    with db_session:
+        if jugador and objetivo:
+            if not son_adyacentes(jugador, objetivo)[0]: raise HTTPException(status_code=400, detail="Jugadores no son adyacentes")  
+            objetivo.cuarentena = True
+            #Seteo en 3 porque el efecto se aplica al jugador adyacente del que jugo la carta.
+            #Entonces en el sentido de la ronda una vez le toque al jugador recien ahi se le baja en uno el contador.
+            #Lo que tiene hacerlo de esta forma es que el objetivo del lado que el turno siguiente no es suyo la puede llegar a sufrir un poco mas. 
+            objetivo.cuarentenaCount = 3
+                
+        else:
+            raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")
+            
 async def sospecha(idPartida, idObjetivo, idJugador):
     if son_adyacentes(Jugador.get(id=idObjetivo), Jugador.get(id=idJugador))[0]:
         await manager.handle_data("sospecha", idPartida, idObjetivo=idObjetivo, idJugador=idJugador)
