@@ -6,10 +6,10 @@ from db.cartas_session import *
 from db.partidas_session import *
 from .schemas import *
 import random
-from api.ws import manager
+from api.ws import manager, manager_chat
 from fastapi.websockets import *
 from typing import List
-import asyncio
+import json
 
 
 partidas_router = APIRouter()
@@ -27,15 +27,22 @@ async def listar_partidas():
 @partidas_router.post("/unir", status_code=200)
 async def unir_jugador(idPartida:int, idJugador:int):
     with db_session:
-        if db.Partida.exists(id=idPartida) & db.Jugador.exists(id=idJugador):
-            if not db.Jugador[idJugador].partida:
-                partida = db.Partida[idPartida].jugadores.add(db.Jugador[idJugador])
-                db.Jugador[idJugador].isHost = False
+        jugador = Jugador.get(id=idJugador)
+        partida = Partida.get(id=idPartida)
+        if partida and jugador:
+            if not jugador.partida:
+                partida.jugadores.add(jugador)
+                jugador.isHost = False
             else:
                 raise HTTPException(status_code=400, detail="Jugador already in Partida")
         else:
             raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
     
+        jugador = Jugador.get(id=idJugador)
+    
+    msg = f'{jugador.nombre} se unió al lobby'
+    await manager_chat.handle_data("chat_msg", jugador.partida.id, msg=msg, isLog=True)
+
     await manager.handle_data("unir", idPartida)
 
 
@@ -149,7 +156,18 @@ async def finalizar_partida(id: int) -> EstadoPartida:
                 return EstadoPartida(finalizada=False, idGanador=-1)
 
 
-        
+@partidas_router.get(path="/{id}/chat", status_code=status.HTTP_200_OK)
+async def get_chat(id: int):
+    with db_session:
+        partida = Partida.get(id=id)
+        ret = []
+        if not partida:
+            return HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                 detail="No se encontró esa partida")
+        for m in partida.chat:
+            ret.append(json.loads(m))
+    
+    return ret
     
 
 @partidas_router.websocket("/{idPartida}/ws")
@@ -162,6 +180,17 @@ async def websocket_endpoint(websocket: WebSocket, idPartida: int, idJugador: in
             await manager.put_in_message_queue(idPartida,idJugador,data)
     except WebSocketDisconnect:
         await manager.disconnect(idPartida, idJugador)
+
+@partidas_router.websocket("/{idPartida}/ws/chat")
+async def websocket_endpoint_chat(websocket: WebSocket, idPartida: int, idJugador: int):
+    await manager_chat.connect(websocket, idPartida, idJugador)
+    try:
+        while True:
+            msg = await websocket.receive_text()
+            if(msg != ""):
+                await manager_chat.handle_data("chat_msg",idPartida,idJugador,msg=msg)
+    except WebSocketDisconnect:
+        await manager_chat.disconnect(idPartida,idJugador)
 
 async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la ultima carta
 

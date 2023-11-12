@@ -5,6 +5,7 @@ from db.models import *
 from db.partidas_session import get_partida, fin_partida_respond, get_jugadores_partida
 from db.jugadores_session import get_abandonarlobby_data
 from db.cartas_session import carta_data, get_mano_jugador, puede_intercambiar_infectado
+from db.utils import msg_data
 import asyncio
 import json
 
@@ -61,7 +62,7 @@ class ConnectionManager:
 
     async def handle_data(self, event: str, idPartida: int, idJugador = -1, winners = [],
                            winning_team = "", idObjetivo = -1, idCarta = -1, msg="",
-                             template_carta="", nombreJugador="", nombreObjetivo=""):
+                             template_carta="", nombreJugador="", nombreObjetivo="", isLog=False):
 
         
         match event:
@@ -120,21 +121,36 @@ class ConnectionManager:
             case "Analisis":
                 data = build_dict("Analisis", get_mano_jugador(idObjetivo))
                 await self.personal_msg(data,idPartida,idJugador)
+            case "chat_msg":
+                msgdata = msg_data(msg, isLog, idJugador)
+                with db_session:
+                    partida = Partida.get(id=idPartida)
+                    partida.chat.append(json.dumps(msgdata))
+                    commit()
+                data = build_dict("chat_msg", msgdata)
+                await self.broadcast(data, idPartida)
+                
             case "Whisky":
                 data = build_dict("Whisky", get_mano_jugador(idJugador))
                 await self.broadcast(data,idPartida)
             case "sospecha":
                 data = build_dict("sospecha", get_mano_jugador(idObjetivo))
                 await self.personal_msg(data, idPartida, idJugador)
+
             case "Aterrador":
                 carta = Carta.get(id=idCarta)
                 data = build_dict("Aterrador",carta.template_carta.nombre)
+            case "Ups":
+                data = build_dict("Ups", get_mano_jugador(idJugador))
+                await self.broadcast(data,idPartida)
+            case "Que quede entre nosotros":
+                data = build_dict("Que quede entre nosotros", get_mano_jugador(idJugador))
                 await self.personal_msg(data, idPartida , idObjetivo)
             case _:
                 print("El resto")
 
 manager = ConnectionManager()
-
+manager_chat = ConnectionManager()
 
 def build_dict(event: str,data):
     return {"event": event,

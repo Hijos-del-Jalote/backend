@@ -103,7 +103,7 @@ def cambio_de_lugar(jugador1, jugador2):
             ady = son_adyacentes(jugador1, jugador2)
             #ACA SE ASUME QUE SI SENTIDO=TRUE EL SENTIDO DE LA PARTIDA ES ANTIHORARIO, OSEA (POSICION+1 MOD CANT) CORRESPONDE BLOQUEO DE DERECHA Y (POSICION-1 MOD CANT) CORRESPONDE BLOQUEO DE IZQUIERDA 
 
-            if ady[0] and (not jugador2.cuarentena) and ((ady[1]==1 and not jugador1.blockDer) or (ady[1]==0 and not jugador1.blockIzq) or (ady[1]==2 and (not jugador1.blockIzq) and (not jugador1.blockDer))):
+            if ady[0] and (not jugador2.cuarentena) and ((ady[1]==1 and (not jugador1.blockDer) and (not jugador2.blockIzq)) or (ady[1]==0 and (not jugador1.blockIzq) and (not jugador1.blockDer)) or (ady[1]==2 and (not jugador1.blockIzq) and (not jugador1.blockDer))):
                 intercambiar_posiciones(jugador1, jugador2)
 
             else:
@@ -145,9 +145,22 @@ async def sospecha(idPartida, idObjetivo, idJugador):
     else:
         raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")        
     
+
+def cuerdas_podridas(idPartida):
+    partida = Partida.get(id=idPartida)
+    if not partida:
+        raise HTTPException(status_code=400, detail="Partida no existente")
+    else:
+        for j in partida.jugadores:
+            j.cuarentena = False
+
+async def entre_nosotros(idPartida, idObjetivo, idJugador):
+    if son_adyacentes(Jugador.get(id=idObjetivo), Jugador.get(id=idJugador))[0]:
+        await manager.handle_data("Que quede entre nosotros", idPartida,idJugador=idJugador ,idObjetivo=idObjetivo)
+    else:
+        raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")
 async def analisis(idPartida, idObjetivo,idJugador,):
     if son_adyacentes(Jugador.get(id=idObjetivo), Jugador.get(id=idJugador))[0]:
         await manager.handle_data("Analisis", idPartida, idObjetivo=idObjetivo , idJugador=idJugador)
     else:
         raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")
-    
