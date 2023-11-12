@@ -3,7 +3,7 @@ from pony.orm import db_session
 from db.models import *
 from .partidas import fin_partida
 from . import efectos_cartas
-from api.ws import manager
+from api.ws import manager, manager_chat
 import json
 from db.cartas_session import *
 from db.jugadores_session import es_siguiente
@@ -37,6 +37,8 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                     
                 await manager.handle_data(event="jugar carta", idPartida=partida.id, idObjetivo=id_objetivo, idCarta=id_carta, idJugador=idJugador, template_carta=carta.template_carta.nombre, nombreJugador=Jugador[idJugador].nombre, nombreObjetivo=Jugador[id_objetivo].nombre)
                 
+                msg = f'{jugador.nombre} jugó {carta.template_carta.nombre} contra {objetivo.nombre}'
+                await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
                 
                 
                 response = await manager.get_from_message_queue(partida.id,id_objetivo)
@@ -46,13 +48,22 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                 if defendido:
                     #Descarto la carta del jugador que se defendio
                     cartaElim = Carta.get(id=response['idCarta'])
-                    Jugador[id_objetivo].cartas.remove(cartaElim)
+
+                    msg = f'{objetivo.nombre} se defendió con {cartaElim.template_carta.nombre}'
+                    await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
+
+                    objetivo.cartas.remove(cartaElim)
                     commit()
                     robar_carta(id_objetivo)
                     
                     #Devuelvo datos desde la perspectivo del que se defendio.
                     await manager.handle_data(event="jugar defensa",idPartida=partida.id, idObjetivo=idJugador, idCarta=response['idCarta'], idJugador=id_objetivo, template_carta=Carta[response['idCarta']].template_carta.nombre, nombreJugador=Jugador[id_objetivo].nombre, nombreObjetivo=Jugador[idJugador].nombre)                
-                    
+                else:
+                    msg = f'{objetivo.nombre} no se defendió'
+                    await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
+            else:
+                msg = f'{jugador.nombre} jugó {carta.template_carta.nombre}'
+                await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
                     
             if not defendido:
                 match carta.template_carta.nombre: 
@@ -134,10 +145,18 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="Hay una puerta trancada entre los jugadores")
 
+
+                msg = f'{jugador.nombre} quiere intercambiar una carta con {jugObj.nombre}'
+                await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
+
                 response = await manager.handle_data("intercambiar", carta.partida.id, jugador.id,
                                                      idCarta=idCarta, idObjetivo=idObjetivo)
                 
                 if response['aceptado']:
+                    
+                    msg = f'{jugObj.nombre} aceptó el intercambio'
+                    await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
+
                     jo_carta: Carta = Carta.get(id=response['data'])    
                     
                     corroborar_infección(jugador,jugObj,carta,jo_carta)
@@ -146,6 +165,11 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                     await manager.broadcast({'event': "intercambio exitoso"}, carta.partida.id)
 
                 else:
+                    jo_carta: Carta = Carta.get(id=response['data'])
+
+                    msg = f'{jugObj.nombre} jugó {jo_carta.template_carta.nombre} y rechazó el intercambio'
+                    await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
+
                     await manager.broadcast({'event': "intercambio rechazado"}, carta.partida.id)
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Carta o jugador no encontrados")
@@ -163,5 +187,13 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
 
 
 @cartas_router.put("/descartar_carta/{idCarta}", status_code=200)
-def descartar_carta_put(idCarta: int):
+async def descartar_carta_put(idCarta: int):
+    with db_session:
+        carta = Carta.get(id=idCarta)
+        jugador = carta.jugador
+        partida = jugador.partida
+
     descartar_carta(idCarta)
+
+    msg = f'{jugador.nombre} descartó una carta'
+    await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
