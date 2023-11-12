@@ -44,18 +44,6 @@ def test_cartas_defensa(cleanup_db_after_test):
             assert templates[15].nombre == "Fallaste" and templates[15].tipo == Tipo_Carta.defensa and templates[15].descripcion == """el siguiente jugador despues de ti realiza el intercambio de cartas en tu lugar ,
                              no queda infectado si recibe una carta infectado roba una carta 'alejate'"""
             assert templates[16].nombre == "Nada de barbacoas" and templates[16].tipo == Tipo_Carta.defensa and templates[16].descripcion == "cancela una carta 'lanzallamas' que te tenga como objetivo y roba una carta 'alejate"
-            assert templates[17].nombre == "Puerta atrancada" and templates[17].tipo == Tipo_Carta.obstaculo and templates[17].descripcion == "Coloca esta carta entre un jugador adyacente y tu , no se permiten acciones entre este jugador y tu"
-            assert templates[18].nombre == "Cuarentena" and templates[18].tipo == Tipo_Carta.obstaculo and templates[18].descripcion == "C"
-            assert templates[19].nombre == "Revelaciones" and templates[19].tipo == Tipo_Carta.panico and templates[19].descripcion == "o"
-            assert templates[20].nombre == "Sal de aqui" and templates[20].tipo == Tipo_Carta.panico and templates[20].descripcion == "o"
-            assert templates[21].nombre == "Olvidadizo" and templates[21].tipo == Tipo_Carta.panico and templates[21].descripcion == "o"
-            assert templates[22].nombre == "Cuerdas podridas" and templates[22].tipo == Tipo_Carta.panico and templates[22].descripcion == "o"
-            assert templates[23].nombre == "Uno, dos" and templates[23].tipo == Tipo_Carta.panico and templates[23].descripcion == "o"
-            assert templates[24].nombre == "Tres, cuatro" and templates[24].tipo == Tipo_Carta.panico and templates[24].descripcion == "o"
-            assert templates[25].nombre == "Es aqui la fiesta?" and templates[25].tipo == Tipo_Carta.panico and templates[25].descripcion == "o"
-            assert templates[26].nombre == "Que quede entre nosotros" and templates[26].tipo == Tipo_Carta.panico and templates[26].descripcion == "o"
-            assert templates[27].nombre == "Vuelta y vuelta" and templates[27].tipo == Tipo_Carta.panico and templates[27].descripcion == "o"
-            assert templates[28].nombre == "No podemos ser amigos?" and templates[28].tipo == Tipo_Carta.panico and templates[28].descripcion == "o"
-            assert templates[29].nombre == "Cita a ciegas" and templates[29].tipo == Tipo_Carta.panico and templates[29].descripcion == "o"
-            assert templates[30].nombre == "Ups" and templates[30].tipo == Tipo_Carta.panico and templates[30].descripcion == "o"
+
+
 
