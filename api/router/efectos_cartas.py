@@ -150,3 +150,4 @@ async def analisis(idPartida, idObjetivo,idJugador,):
         await manager.handle_data("Analisis", idPartida, idObjetivo=idObjetivo , idJugador=idJugador)
     else:
         raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")
+    

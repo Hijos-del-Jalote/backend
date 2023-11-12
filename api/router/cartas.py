@@ -126,6 +126,7 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="Hay una puerta trancada entre los jugadores")
 
+                
                 response = await manager.handle_data("intercambiar", carta.partida.id, jugador.id,
                                                      idCarta=idCarta, idObjetivo=idObjetivo)
                 
@@ -138,6 +139,11 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                     await manager.broadcast({'event': "intercambio exitoso"}, carta.partida.id)
 
                 else:
+                    jo_carta: Carta = Carta.get(id=response['data']) 
+                    
+                    if jo_carta.template_carta.nombre == "Aterrador":
+                        await manager.handle_data("Aterrador",partida.id,idObjetivo=idObjetivo ,idCarta=idCarta)
+                        
                     await manager.broadcast({'event': "intercambio rechazado"}, carta.partida.id)
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Carta o jugador no encontrados")
