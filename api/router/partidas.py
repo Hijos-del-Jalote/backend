@@ -190,7 +190,7 @@ async def websocket_endpoint_chat(websocket: WebSocket, idPartida: int, idJugado
             if(msg != ""):
                 await manager_chat.handle_data("chat_msg",idPartida,idJugador,msg=msg)
     except WebSocketDisconnect:
-        await manager.disconnect(idPartida,idJugador)
+        await manager_chat.disconnect(idPartida,idJugador)
 
 async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la ultima carta
 
