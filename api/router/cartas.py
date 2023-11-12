@@ -69,6 +69,9 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                 match carta.template_carta.nombre: 
                 
                     case "Lanzallamas":
+                        with db_session:
+                            objetivo = Jugador.get(id=id_objetivo)
+
                         efectos_cartas.efecto_lanzallamas(id_objetivo)
 
                         msg = f'{objetivo.nombre} ha sido eliminado'
