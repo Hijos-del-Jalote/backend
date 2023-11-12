@@ -4,6 +4,8 @@ from pony.orm import db_session
 from fastapi import HTTPException
 from api.ws import manager
 import asyncio
+import json
+
 #Esta funcion es para saber si jugador2 es adyacente a jugador1 y de que lado.
 #El valor de retorno es una tupla (adyacente, lado)
 #adyacente es bool indicando si es o no adyacente. Si no lo es entonces lado es None, sino:
@@ -165,3 +167,22 @@ async def analisis(idPartida, idObjetivo,idJugador,):
     else:
         raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")
 
+
+async def cita_a_ciegas(idPartida,idJugador):
+    with db_session:
+        response = await manager.handle_data("Cita a ciegas", idPartida=idPartida,idJugador=idJugador)
+        jugador = Jugador.get(id=idJugador)
+        partida = Partida.get(id=idPartida)
+        json_data = json.loads(response)
+        carta= Carta.get(id=json_data['data'])
+        terminado=False
+        while not terminado:
+            nuevacarta = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).random(1)[0]
+            if nuevacarta.template_carta.tipo=="Panico":
+                nuevacarta.descartada=True
+            else:
+                nuevacarta.jugador=jugador
+                terminado=True
+        carta.jugador=None
+        db.commit()
+        await manager.handle_data("fin_de_turno", idPartida=idPartida)

@@ -80,7 +80,9 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                         await manager.handle_data("Ups",partida.id,idJugador)
                     case "Que quede entre nosotros":
                         await efectos_cartas.entre_nosotros(partida.id, id_objetivo, idJugador)
-
+                    case "Cita a ciegas":
+                        await efectos_cartas.cita_a_ciegas(partida.id,idJugador)
+                    
                         
 
 

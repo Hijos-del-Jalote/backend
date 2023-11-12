@@ -30,6 +30,10 @@ def dar_cartas():
                         template_carta = "Seduccion",
                         jugador=Jugador[1],
                         partida=Partida[1])
+        carta3 = Carta(id=1002,
+                        template_carta = "Lanzallamas",
+                        jugador= None,
+                        partida=Partida[1])
                         
 
 
@@ -47,6 +51,7 @@ async def test_cita_a_ciegas_exitosa(setup_db_before_test,cleanup_db_after_test)
             "data": 1001
         }
         return json.dumps(response_data)
+    
 
     with client.websocket_connect(f'ws://localhost:8000/partidas/1/ws?idJugador=1') as ws:
 
@@ -54,11 +59,14 @@ async def test_cita_a_ciegas_exitosa(setup_db_before_test,cleanup_db_after_test)
             mock_get_from_message_queue.side_effect = fake_get_from_message_queue
             response = client.post(f'/cartas/jugar?id_carta=1000')
             assert response.status_code == 200
-
+    with db_session:
+        carta = Carta.get(id=1000)
+        carta2 = Carta.get(id=1001)
+        carta3 = Carta.get(id=1002)
+        assert carta.jugador == None
+        assert carta.descartada == True
+        assert carta2.jugador == None
+        assert carta2.descartada == False
+        assert carta3.jugador == Jugador[1]
+        assert carta3.descartada == False
         
-        response_ws = ws.receive_json()
-        response_ws = ws.receive_json()
-
-        assert response_ws == {'event': "sospecha",
-                               'data': ["Seduccion"]}
-
