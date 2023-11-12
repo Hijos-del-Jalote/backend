@@ -41,7 +41,8 @@ def test_cartas_defensa(cleanup_db_after_test):
             assert templates[12].nombre == "Aterrador" and templates[12].tipo == Tipo_Carta.defensa and templates[12].descripcion == "Niegate a un ofrecimiento de cambio de carta , mira la carta que te has negado a recibir y roba una carta 'alejate"
             assert templates[13].nombre == "Aqui estoy bien" and templates[13].tipo == Tipo_Carta.defensa and templates[13].descripcion == "cancela una carta 'cambio de lugar' o 'mas vale que corras y roba una carta 'alejate"
             assert templates[14].nombre == "No, gracias" and templates[14].tipo == Tipo_Carta.defensa and templates[14].descripcion == "Niegate a un ofrecimiento de cambio de carta y roba una carta 'alejate"
-            assert templates[15].nombre == "Fallaste" and templates[15].tipo == Tipo_Carta.defensa and templates[15].descripcion == "el siguiente jugador despues de ti realiza el intercambio de cartas en tu lugar , no queda infectado si recibe una carta infectado roba una carta 'alejate'"
+            assert templates[15].nombre == "Fallaste" and templates[15].tipo == Tipo_Carta.defensa and templates[15].descripcion == """el siguiente jugador despues de ti realiza el intercambio de cartas en tu lugar ,
+                             no queda infectado si recibe una carta infectado roba una carta 'alejate'"""
             assert templates[16].nombre == "Nada de barbacoas" and templates[16].tipo == Tipo_Carta.defensa and templates[16].descripcion == "cancela una carta 'lanzallamas' que te tenga como objetivo y roba una carta 'alejate"
             assert templates[17].nombre == "Puerta atrancada" and templates[17].tipo == Tipo_Carta.obstaculo and templates[17].descripcion == "Coloca esta carta entre un jugador adyacente y tu , no se permiten acciones entre este jugador y tu"
             assert templates[18].nombre == "Cuarentena" and templates[18].tipo == Tipo_Carta.obstaculo and templates[18].descripcion == "C"
@@ -57,3 +58,4 @@ def test_cartas_defensa(cleanup_db_after_test):
             assert templates[28].nombre == "No podemos ser amigos?" and templates[28].tipo == Tipo_Carta.panico and templates[28].descripcion == "o"
             assert templates[29].nombre == "Cita a ciegas" and templates[29].tipo == Tipo_Carta.panico and templates[29].descripcion == "o"
             assert templates[30].nombre == "Ups" and templates[30].tipo == Tipo_Carta.panico and templates[30].descripcion == "o"
+

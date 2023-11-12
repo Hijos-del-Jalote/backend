@@ -212,3 +212,22 @@ async def test_intercambiar_infectado_a_lacosa(setup_db_before_test, cleanup_db_
         assert response_ws == {'event': "intercambio exitoso"}
 
         assert response.status_code == 200
+
+
+async def test_intercambiar_carta_la_cosa(setup_db_before_test, cleanup_db_after_test):
+   
+    client = TestClient(app)
+
+    asignar_pos()
+    dar_cartas()
+    with db_session:
+        Jugador[1].Rol = Rol.humano
+        Carta(id=1003,
+                        template_carta = "La cosa",
+                        jugador=Jugador[2],
+                        partida=Partida[1])
+
+    response = client.put(f'/cartas/1003/intercambiar?idObjetivo=1')
+
+    assert response.status_code == 400
+    assert response.json() == {'detail': "No se puede intercambiar la carta La Cosa"}

@@ -6,10 +6,10 @@ from db.cartas_session import *
 from db.partidas_session import *
 from .schemas import *
 import random
-from api.ws import manager
+from api.ws import manager, manager_chat
 from fastapi.websockets import *
 from typing import List
-import asyncio
+import json
 
 
 partidas_router = APIRouter()
@@ -149,7 +149,18 @@ async def finalizar_partida(id: int) -> EstadoPartida:
                 return EstadoPartida(finalizada=False, idGanador=-1)
 
 
-        
+@partidas_router.get(path="/{id}/chat", status_code=status.HTTP_200_OK)
+async def get_chat(id: int):
+    with db_session:
+        partida = Partida.get(id=id)
+        ret = []
+        if not partida:
+            return HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                 detail="No se encontró esa partida")
+        for m in partida.chat:
+            ret.append(json.loads(m))
+    
+    return ret
     
 
 @partidas_router.websocket("/{idPartida}/ws")
@@ -162,6 +173,17 @@ async def websocket_endpoint(websocket: WebSocket, idPartida: int, idJugador: in
             await manager.put_in_message_queue(idPartida,idJugador,data)
     except WebSocketDisconnect:
         await manager.disconnect(idPartida, idJugador)
+
+@partidas_router.websocket("/{idPartida}/ws/chat")
+async def websocket_endpoint_chat(websocket: WebSocket, idPartida: int, idJugador: int):
+    await manager_chat.connect(websocket, idPartida, idJugador)
+    try:
+        while True:
+            msg = await websocket.receive_text()
+            if(msg != ""):
+                await manager_chat.handle_data("chat_msg",idPartida,idJugador,msg=msg)
+    except WebSocketDisconnect:
+        await manager.disconnect(idPartida,idJugador)
 
 async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la ultima carta
 

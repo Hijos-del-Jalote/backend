@@ -27,22 +27,34 @@ def crear_templates_cartas():
         crear_template_carta("Aterrador", "Niegate a un ofrecimiento de cambio de carta , mira la carta que te has negado a recibir y roba una carta 'alejate", Tipo_Carta.defensa)
         crear_template_carta("Aqui estoy bien", "cancela una carta 'cambio de lugar' o 'mas vale que corras y roba una carta 'alejate", Tipo_Carta.defensa)
         crear_template_carta("No, gracias", "Niegate a un ofrecimiento de cambio de carta y roba una carta 'alejate", Tipo_Carta.defensa)
-        crear_template_carta("Fallaste", "el siguiente jugador despues de ti realiza el intercambio de cartas en tu lugar , no queda infectado si recibe una carta infectado roba una carta 'alejate'" , Tipo_Carta.defensa)
+        crear_template_carta("Fallaste", """el siguiente jugador despues de ti realiza el intercambio de cartas en tu lugar ,
+                             no queda infectado si recibe una carta infectado roba una carta 'alejate'""" , Tipo_Carta.defensa)
         crear_template_carta("Nada de barbacoas", "cancela una carta 'lanzallamas' que te tenga como objetivo y roba una carta 'alejate", Tipo_Carta.defensa)
         crear_template_carta("Puerta atrancada", "Coloca esta carta entre un jugador adyacente y tu , no se permiten acciones entre este jugador y tu", Tipo_Carta.obstaculo)
-        crear_template_carta("Cuarentena", "C", Tipo_Carta.obstaculo)
-        crear_template_carta("Revelaciones", "o", Tipo_Carta.panico)
-        crear_template_carta("Sal de aqui", "o", Tipo_Carta.panico)
-        crear_template_carta("Olvidadizo", "o", Tipo_Carta.panico)
-        crear_template_carta("Cuerdas podridas", "o", Tipo_Carta.panico)
-        crear_template_carta("Uno, dos", "o", Tipo_Carta.panico)
-        crear_template_carta("Tres, cuatro", "o", Tipo_Carta.panico)
-        crear_template_carta("Es aqui la fiesta?", "o", Tipo_Carta.panico)
-        crear_template_carta("Que quede entre nosotros", "o", Tipo_Carta.panico)
+        crear_template_carta("Cuarentena", """Durante 2 rondas , 
+                             un jugador adyacente debe robar e intercambiar cartas boca arriba.
+                             No puede eliminar jugadores ni cambiar de sitio""", Tipo_Carta.obstaculo)
+        crear_template_carta("Revelaciones", """Empezando por ti y siguiendo el orden de juego , cada jugador elige 
+                             si revela o no su mano , la ronda revelaciones termina cuando un jugador
+                             muestre una carta infectado  sin tener que revelar el resto de su mano""",Tipo_Carta.panico)
+        crear_template_carta("Sal de aqui", "Cambia de sitio con cualquier jugador que no este en cuarentena", Tipo_Carta.panico)
+        crear_template_carta("Olvidadizo", """"Descarta 3 cartas de tu mano y roba 3 nuevas cartas 'Alejate'
+                             Descartando cualquier carta de panico robada""", Tipo_Carta.panico)
+        crear_template_carta("Cuerdas podridas", "Todas las cartas 'cuarentena' que haya en juego son descartadas", Tipo_Carta.panico)
+        crear_template_carta("Uno, dos", """Cambiate de sitio con el tercer jugador que tengas a tu izquierda o derecha,
+                             ignorando cualquier puerta trancada que haya en juego
+                             si tu o el jugador objetivo estan en cuarentena , el cambio no tiene lugar""", Tipo_Carta.panico)
+        crear_template_carta("Tres, cuatro", "Todas las cartas 'puerta trancada' que haya en juego son descartadas", Tipo_Carta.panico)
+        crear_template_carta("Es aqui la fiesta?", """Todas las cartas 'puerta trancada' y 'cuarentena que haya en juego 
+                             son descartadas luego empezando por ti, todos los jugadores cambian de sitio
+                             por parejas, en el sentido de las agujas del reloj
+                             si hay una cantidad impar de jugadores el ultimo jugador no se mueve""", Tipo_Carta.panico)
+        crear_template_carta("Que quede entre nosotros", "Muestrale todas las cartas de tu mano a un jugador adyacente", Tipo_Carta.panico)
         crear_template_carta("Vuelta y vuelta", "o", Tipo_Carta.panico)
-        crear_template_carta("No podemos ser amigos?", "o", Tipo_Carta.panico)
-        crear_template_carta("Cita a ciegas", "o", Tipo_Carta.panico)
-        crear_template_carta("Ups", "o", Tipo_Carta.panico)
+        crear_template_carta("No podemos ser amigos?", "Intercambia 1 carta con cualquier jugador de tu eleccion que no este en cuarentena", Tipo_Carta.panico)
+        crear_template_carta("Cita a ciegas", """"intercambia una carta de tu mano con la primera carta del mazo ,
+                             descartando cualquier carta de panico robada.Termina tu turno""", Tipo_Carta.panico)
+        crear_template_carta("Ups", "Muestra todas tus cartas a todos los jugadores", Tipo_Carta.panico)
         
     return 0
 
@@ -63,7 +75,10 @@ def repartir_cartas(partida:Partida):
     jugador_aleatorio.cartas.add(la_cosa)
     for jugador in partida.jugadores:
         for i in range(cantidad_cartas_por_jugador):
-            carta = select(c for c in partida.cartas if not c.descartada and c.jugador==None).random(1)
+            carta = select(c for c in partida.cartas if not c.descartada and
+                           c.jugador==None and
+                           c.template_carta.tipo != Tipo_Carta.panico).random(1)
+            
             if len(jugador.cartas)<4:
                  jugador.cartas.add(carta)
 
@@ -91,12 +106,17 @@ def robar_carta(idJugador: int):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="El jugador no está en una partida")
         else:
-            carta = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).random(1)
-            if not carta:
+            query = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).random(1)
+            if not query:
                 rellenar_mazo(partida)
                 commit()
-                carta = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).random(1)
+                carta = select(c for c in partida.cartas if (not c.descartada and c.jugador == None)).random(1)[0]
+            else:
+                carta = query[0]
+
             agregar_carta_en_mano(jugador.cartas, carta)
+            partida.ultimaRobada = carta.id
+            commit()
 
             
 @db_session
@@ -107,7 +127,7 @@ def get_mano_jugador(idJugador: int):
         list = []
         for carta in cartas:
             list.append(carta.template_carta.nombre)
-    return list
+    return sorted(list)
 
 
 
