@@ -7,41 +7,65 @@ from db.models import *
 
 client = TestClient(app)
 
-
-def test_efecto_lanzallamas(cleanup_db_after_test):
+def dar_cartas():
     with db_session:
-        l = False
-        #Crear template de una carta lanzallamas si no existe
-        if not TemplateCarta.exists(nombre="Lanzallamas"):
-            template_carta = TemplateCarta(nombre="Lanzallamas", descripcion="Esta es una carta de prueba", tipo=Tipo_Carta.accion)
-            l = True
-        else:
-            template_carta = TemplateCarta.get(nombre="Lanzallamas")
-        #Crear un jugador que jugara la carta
-        jugador1 = Jugador(nombre="Diego", isHost=True, isAlive=True, blockIzq=False, blockDer=False, Posicion=0)
-        #Crear un jugador que recibira el efecto
-        jugador2 = Jugador(nombre="Chun", isHost=False, isAlive=True, blockIzq=False, blockDer=False, Posicion=1, Rol=Rol.lacosa)
-        #Crear una partida con jugadores
-        partida = Partida(nombre="Partida", maxJug=5, minJug=1, sentido=False, iniciada=True, cantidadVivos=2, jugadores={jugador1, jugador2})
-        #Crear carta y asignarsela al jugador1 y partida
-        carta = Carta(descartada=False, template_carta=template_carta, partida=partida, jugador=jugador1)
-        db.commit()
-        partida.turnoActual=jugador1.id
-        db.commit()
-        #Jugar carta contra el jugador 2
-        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={jugador2.id}&test=True')
-        assert(response.status_code == 200)
-        #Jugar carta sin pasar objetivo
-        response = client.post(f'cartas/jugar?id_carta={carta.id}')
-        assert(response.status_code == 400)
-        #Jugar carta pasando objetivo inexistente
-        response = client.post(f'cartas/jugar?id_carta={carta.id}&id_objetivo={-1}&test=True')
-        assert(response.status_code == 400)
-        
-        if l:
-            template_carta.delete()
-        jugador1.delete()
-        jugador2.delete()
-        partida.delete()
-        carta.delete()
+        cartaj1 = Carta(id=1000,
+                        template_carta = "Lanzallamas",
+                        jugador=Jugador[1],
+                        partida=Partida[1])
+        cartaj2 = Carta(id=1001,
+                        template_carta = "Seduccion",
+                        jugador=Jugador[2],
+                        partida=Partida[1])
 
+
+@db_session
+def test_jugar_carta_falso_objetivo(setup_db_before_test, cleanup_db_after_test):
+    dar_cartas()
+    Jugador[1].Posicion = 0
+    Jugador[2].Posicion = 1
+    Partida[1].turnoActual = Jugador[1].id
+    db.commit()
+    #Jugar carta pasando objetivo inexistente
+    response = client.post(f'cartas/jugar?id_carta={1000}&id_objetivo={-1}&test=True')
+    assert(response.status_code == 400) & (response.text == '{"detail":"Jugador objetivo No existe o No proporcionado"}')  
+
+@db_session
+def test_jugar_carta_no_objetivo(setup_db_before_test, cleanup_db_after_test):
+    dar_cartas()
+    Jugador[1].Posicion = 0
+    Jugador[2].Posicion = 1
+    Partida[1].turnoActual = Jugador[1].id
+    db.commit()
+    #Jugar carta sin pasar objetivo
+    response = client.post(f'cartas/jugar?id_carta={1000}')
+    assert(response.status_code == 400) & (response.text == '{"detail":"Jugador objetivo No existe o No proporcionado"}')  
+
+@db_session
+def test_jugar_carta_exitoso_la_cosa(setup_db_before_test, cleanup_db_after_test):
+    dar_cartas()
+    Jugador[1].Posicion = 0
+    Jugador[2].Posicion = 1
+    Jugador[2].Rol = Rol.lacosa
+    Partida[1].turnoActual = Jugador[1].id
+    Partida[1].cantidadVivos = 4
+    db.commit()
+    #Jugar carta contra el jugador 2
+    response = client.post(f'cartas/jugar?id_carta={1000}&id_objetivo={Jugador[2].id}&test=True')
+    response_jugador2 = client.get(f'jugadores/{Jugador[2].id}')
+    assert(response.status_code == 200) & (not response_jugador2.json()["isAlive"])
+  
+@db_session
+def test_jugar_carta_exitoso_no_la_cosa(setup_db_before_test, cleanup_db_after_test):
+    dar_cartas()
+    Jugador[1].Posicion = 0
+    Jugador[2].Posicion = 1
+    Jugador[3].Rol = Rol.lacosa
+    Partida[1].turnoActual = Jugador[1].id
+    Partida[1].cantidadVivos = 4
+    db.commit()
+    #Jugar carta contra el jugador 2
+    response = client.post(f'cartas/jugar?id_carta={1000}&id_objetivo={Jugador[2].id}&test=True')
+    response_jugador2 = client.get(f'jugadores/{Jugador[2].id}')
+    assert(response.status_code == 200) & (not response_jugador2.json()["isAlive"])  
+    
