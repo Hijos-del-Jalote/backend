@@ -70,6 +70,10 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                 
                     case "Lanzallamas":
                         efectos_cartas.efecto_lanzallamas(id_objetivo)
+
+                        msg = f'{objetivo.nombre} ha sido eliminado'
+                        await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
+
                         await fin_partida(partida.id, idJugador)
                     case "Vigila tus espaldas":
                         efectos_cartas.vigila_tus_espaldas(partida)
