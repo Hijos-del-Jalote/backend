@@ -3,7 +3,7 @@ from pony.orm import db_session, commit
 from db.models import Jugador, Partida
 from db.cartas_session import robar_carta
 from .schemas import PlayerResponse, JugadorResponse
-from ..ws import manager
+from ..ws import manager, manager_chat
 
 
 jugadores_router = APIRouter()
@@ -53,7 +53,12 @@ async def obtener_jugador(id: int) -> JugadorResponse:
 @jugadores_router.put(path="/{id}/robar", status_code=status.HTTP_200_OK)
 async def carta_robar(id: int):
     with db_session:
+        jugador = Jugador.get(id=id)
         robar_carta(id)
+    
+    msg = f'{jugador.nombre} robó una carta'
+    await manager_chat.handle_data("chat_msg", jugador.partida.id, msg=msg, isLog=True)
+
     return {"detail": "Robo exitoso!"}
 
 @jugadores_router.put(path="/{id}/abandonar_lobby", status_code=status.HTTP_200_OK)
@@ -76,6 +81,9 @@ async def abandonar_lobby(id: int):
             partida.jugadores.remove(jugador)
             commit()
             
+            msg = f'{jugador.nombre} abandonó el lobby'
+            await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
+
             await manager.handle_data("abandonar lobby",partida.id, jugador.id)
             
             if isHost:

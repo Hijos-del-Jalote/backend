@@ -1,13 +1,16 @@
 from db.models import *
 import datetime
 
-def msg_data(msg: str, idJugador:int, isLog: bool):
+def obtener_tiempo_actual():
+    ahora = datetime.datetime.now()
+    return ahora.strftime('%H:%M')
+
+def msg_data(msg: str, isLog: bool, idJugador:int = None):
     
     with db_session:
         jugador = Jugador.get(id=idJugador)
     nombre = jugador.nombre if jugador else None
-    ahora = datetime.datetime.now()
-    tiempo = ahora.strftime('%H:%M')
+    tiempo = obtener_tiempo_actual()
     return {'isLog': isLog,
             'player': nombre,
             'msg': msg,

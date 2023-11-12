@@ -27,15 +27,22 @@ async def listar_partidas():
 @partidas_router.post("/unir", status_code=200)
 async def unir_jugador(idPartida:int, idJugador:int):
     with db_session:
-        if db.Partida.exists(id=idPartida) & db.Jugador.exists(id=idJugador):
-            if not db.Jugador[idJugador].partida:
-                partida = db.Partida[idPartida].jugadores.add(db.Jugador[idJugador])
-                db.Jugador[idJugador].isHost = False
+        jugador = Jugador.get(id=idJugador)
+        partida = Partida.get(id=idPartida)
+        if partida and jugador:
+            if not jugador.partida:
+                partida.jugadores.add(jugador)
+                jugador.isHost = False
             else:
                 raise HTTPException(status_code=400, detail="Jugador already in Partida")
         else:
             raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")
     
+        jugador = Jugador.get(id=idJugador)
+    
+    msg = f'{jugador.nombre} se unió al lobby'
+    await manager_chat.handle_data("chat_msg", jugador.partida.id, msg=msg, isLog=True)
+
     await manager.handle_data("unir", idPartida)
 
 
@@ -183,7 +190,7 @@ async def websocket_endpoint_chat(websocket: WebSocket, idPartida: int, idJugado
             if(msg != ""):
                 await manager_chat.handle_data("chat_msg",idPartida,idJugador,msg=msg)
     except WebSocketDisconnect:
-        await manager.disconnect(idPartida,idJugador)
+        await manager_chat.disconnect(idPartida,idJugador)
 
 async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la ultima carta
 
