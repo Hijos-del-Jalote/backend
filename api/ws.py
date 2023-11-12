@@ -140,6 +140,7 @@ class ConnectionManager:
             case "Aterrador":
                 carta = Carta.get(id=idCarta)
                 data = build_dict("Aterrador",carta.template_carta.nombre)
+                await self.personal_msg(data, idPartida , idObjetivo)
             case "Ups":
                 data = build_dict("Ups", get_mano_jugador(idJugador))
                 await self.broadcast(data,idPartida)
