@@ -149,6 +149,10 @@ def carta_data(idCarta: int):
 
 
 @db_session
+def descartar_carta_norestricciones(carta:Carta, jugador:Jugador):
+    carta.descartada=True
+    jugador.cartas.remove(carta)
+@db_session
 def descartar_carta(idCarta: int):
     with db_session:
         carta = Carta.get(id=idCarta)
@@ -162,14 +166,12 @@ def descartar_carta(idCarta: int):
         elif carta.template_carta.nombre == "Infectado" and jugador.Rol == Rol.infectado:
             cartas_infectado = len(select (c for c in jugador.cartas if c.template_carta.nombre== "Infectado"))
             if cartas_infectado > 1:
-                jugador.cartas.remove(carta)
-                carta.descartada=True
+                descartar_carta_norestricciones(carta,jugador)
             else:
                 raise HTTPException(status_code=400,detail="No se puede descartar la carta Infectado")
         else:
             if carta in jugador.cartas:
-                carta.descartada=True
-                jugador.cartas.remove(carta)
+                descartar_carta_norestricciones(carta,jugador)
             else:
                 raise HTTPException(status_code=404,detail="La carta no está en la mano del jugador")
 

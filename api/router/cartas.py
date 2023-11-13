@@ -164,12 +164,12 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                 response = await manager.handle_data("intercambiar", carta.partida.id, jugador.id,
                                                      idCarta=idCarta, idObjetivo=idObjetivo)
                 
+                jo_carta: Carta = Carta.get(id=response['data'])   
+                
                 if response['aceptado']:
                     
                     msg = f'{jugObj.nombre} aceptó el intercambio'
-                    await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
-
-                    jo_carta: Carta = Carta.get(id=response['data'])    
+                    await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)  
                     
                     corroborar_infección(jugador,jugObj,carta,jo_carta)
                     
@@ -177,16 +177,21 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                     await manager.broadcast({'event': "intercambio exitoso"}, carta.partida.id)
 
                 else:
-                    jo_carta: Carta = Carta.get(id=response['data']) 
-                    
-                    if jo_carta.template_carta.nombre == "Aterrador":
-                        await manager.handle_data("Aterrador",partida.id,idObjetivo=idObjetivo ,idCarta=idCarta)
-                        
-
                     msg = f'{jugObj.nombre} jugó {jo_carta.template_carta.nombre} y rechazó el intercambio'
                     await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
+
+                    descartar_carta_norestricciones(jo_carta,jugObj)
+                    robar_carta(idObjetivo)
                     
-                    await manager.broadcast({'event': "intercambio rechazado"}, carta.partida.id)
+                    match jo_carta.template_carta.nombre:
+                        case "Aterrador":
+                            await manager.handle_data("Aterrador",partida.id,idObjetivo=idObjetivo ,idCarta=idCarta)
+                        case "Fallaste":
+                            await efectos_cartas.fallaste(partida,jugador,jugObj,carta)
+                        case _:
+                            await manager.broadcast({'event': "intercambio rechazado"}, carta.partida.id)
+                    
+                    
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Carta o jugador no encontrados")
 
