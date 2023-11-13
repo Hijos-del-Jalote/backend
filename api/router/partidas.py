@@ -207,6 +207,8 @@ async def fin_partida(idPartida: int, idJugador: int): # el jugador que jugó la
                 db.commit()
                 await manager.handle_data(event="finalizar", idPartida=idPartida, 
                                         winners=winners[0], winning_team=winners[1])
+                raise HTTPException(status_code=status.HTTP_200_OK,
+                                    detail="Partida finalizada")
             
         else:
             raise HTTPException(status_code=400, detail="Non existent id for Jugador or Partida")

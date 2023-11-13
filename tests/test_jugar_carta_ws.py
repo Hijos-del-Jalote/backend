@@ -210,9 +210,6 @@ def test_jugar_lacosa_muere(setup_db_before_test, cleanup_db_after_test):
             assert responsews == {'event': "finalizar",
                                   'data': '{"isHumanoTeamWinner":true,"winners":[2,3,4]}'}
 
-            responsews = ws.receive_json()
-            assert responsews == {'event': "fin_turno_jugar",
-                                  'data': get_partida(ids['idpartida']).model_dump_json()}
 
             assert response.status_code == 200
         
@@ -261,9 +258,6 @@ def test_jugar_lacosa_procede_a_masacrar_a_todos(setup_db_before_test, cleanup_d
             assert responsews == {'event': "finalizar",
                                   'data': '{"isHumanoTeamWinner":false,"winners":[1]}'}
 
-            responsews = ws.receive_json()
-            assert responsews == {'event': "fin_turno_jugar",
-                                  'data': get_partida(ids['idpartida']).model_dump_json()}
 
             assert response.status_code == 200
         
