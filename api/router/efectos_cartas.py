@@ -106,6 +106,7 @@ def cambio_de_lugar(jugador1, jugador2):
 
             if ady[0] and (not jugador2.cuarentena) and ((ady[1]==1 and (not jugador1.blockDer) and (not jugador2.blockIzq)) or (ady[1]==0 and (not jugador1.blockIzq) and (not jugador1.blockDer)) or (ady[1]==2 and (not jugador1.blockIzq) and (not jugador1.blockDer))):
                 intercambiar_posiciones(jugador1, jugador2)
+                jugador1.partida.turnoPostIntercambio = jugador2.id
 
             else:
                 raise HTTPException(status_code=400, detail="Los jugadores no son adyacentes | El jugador objetivo esta en cuarentena | Hay una puerta trancada de por medio")
@@ -119,6 +120,7 @@ def mas_vale_que_corras(jugador1, jugador2):
             if not jugador2.cuarentena:
                 if jugador1.cuarentena : raise HTTPException(status_code=400, detail="Jugador en cuarentena no puede cambiar de lugar con otro jugador")
                 intercambiar_posiciones(jugador1, jugador2)
+                jugador1.partida.turnoPostIntercambio = jugador2.id
             else:
                 raise HTTPException(status_code=400, detail="El jugador objetivo esta en cuarentena")
         else:
