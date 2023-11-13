@@ -144,7 +144,7 @@ class ConnectionManager:
                 data = build_dict("Que quede entre nosotros", get_mano_jugador(idJugador))
                 await self.personal_msg(data, idPartida , idObjetivo)
             case "Cita a ciegas":
-                data = build_dict("Cita a ciegas")
+                data = build_dict("Cita a ciegas" , "Elegir carta a cambiar")
                 await self.personal_msg(data,idPartida,idJugador)
                 while True:
                     response = await self.get_from_message_queue(idPartida, idJugador)
@@ -152,11 +152,11 @@ class ConnectionManager:
                     carta= Carta.get(id=json_data['data'])
                     jugador = Jugador.get(id=idJugador)
                     cant_infectados = len(select(c for c in jugador.cartas if c.template_carta.nombre=="Infectado"))
-                    if cant_infectados==1 and jugador.Rol=="Infectado":
-                        await self.personal_msg(build_dict("No puedes descartar una carta de infectado"),
+                    if cant_infectados==1 and jugador.Rol=="Infectado" and carta.template_carta.nombre=="Infectado":
+                        await self.personal_msg(build_dict("Error al descartar" ,"No puedes descartar una carta de infectado"),
                                                     idPartida,idJugador) 
                     elif carta.template_carta.nombre=="La cosa":
-                        await self.personal_msg(build_dict("No puedes descartar la carta la cosa"),
+                        await self.personal_msg(build_dict("Error al descartar" , "No puedes descartar la carta la cosa" ),
                                                     idPartida,idJugador) 
                     else:
                         break
