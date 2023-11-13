@@ -154,11 +154,53 @@ def cuerdas_podridas(idPartida):
         for j in partida.jugadores:
             j.cuarentena = False
 
+def hacha(jugador, objetivo):
+    ady = son_adyacentes(jugador, objetivo)
+    if (not objetivo) or (not jugador): raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")
+    if (jugador!=objetivo) and not ady[0]: raise HTTPException(status_code=400, detail="Los jugadores no son adyacentes")
+    
+    if (jugador.partida.cantidadVivos == 2) and not (jugador.blockDer or jugador.blockIzq):
+        if jugador == objetivo:
+            jugador.cuarentena = False
+        else:
+            objetivo.cuarentena = False
+    elif (jugador.partida.cantidadVivos == 2) and (jugador.blockDer or jugador.blockIzq):
+        jugador.blockDer = False
+        jugador.blockIzq = False
+        Jugador.get(Posicion=(jugador.Posicion+1)%jugador.partida.cantidadVivos, partida=jugador.partida).blockDer = False
+        Jugador.get(Posicion=(jugador.Posicion+1)%jugador.partida.cantidadVivos, partida=jugador.partida).blockIzq = False
+        
+    elif (jugador.partida.cantidadVivos >2) and not (jugador.blockDer or jugador.blockIzq):
+        if jugador == objetivo:
+            jugador.cuarentena = False
+        else:
+            objetivo.cuarentena = False
+    elif (jugador.partida.cantidadVivos >2) and (jugador.blockDer or jugador.blockIzq):
+        if jugador == objetivo:
+            if jugador.blockDer:
+                jugador.blockDer = False
+                Jugador.get((jugador.Posicion+1)%jugador.partida.cantidadVivos, partida=jugador.partida).blockIzq = False
+            else:
+                jugador.blockIzq = False
+                Jugador.get((jugador.Posicion-1)%jugador.partida.cantidadVivos, partida=jugador.partida).blockDer = False
+        elif ady[1] == 0:
+            jugador.blockIzq = False
+            objetivo.blockDer = False
+        else:
+            jugador.blockDer = False
+            objetivo.blockIzq = False
+    else:
+        raise HTTPException(status_code=400, detail="Mal programada la logica en algun lado")
+
+
+            
+
 async def entre_nosotros(idPartida, idObjetivo, idJugador):
     if son_adyacentes(Jugador.get(id=idObjetivo), Jugador.get(id=idJugador))[0]:
         await manager.handle_data("Que quede entre nosotros", idPartida,idJugador=idJugador ,idObjetivo=idObjetivo)
     else:
         raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")
+        
 async def analisis(idPartida, idObjetivo,idJugador,):
     if son_adyacentes(Jugador.get(id=idObjetivo), Jugador.get(id=idJugador))[0]:
         await manager.handle_data("Analisis", idPartida, idObjetivo=idObjetivo , idJugador=idJugador)

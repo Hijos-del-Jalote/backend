@@ -30,6 +30,7 @@ class JugadorResponse(BaseModel):
     isAlive: Optional[bool]
     blockIzq: bool
     blockDer: bool
+    cuarentena: bool
     rol: Optional[str]
     cartas: Optional[List[Dict[str,Union[str,int]]]]
 

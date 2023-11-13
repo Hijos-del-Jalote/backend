@@ -41,6 +41,7 @@ async def obtener_jugador(id: int) -> JugadorResponse:
                                           rol = jugador.Rol,
                                           blockIzq = jugador.blockIzq,
                                           blockDer = jugador.blockDer,
+                                          cuarentena = jugador.cuarentena,
                                           cartas = lista_cartas)
                                           
         else:

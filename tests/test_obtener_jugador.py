@@ -38,6 +38,7 @@ def test_get_jugador_valido(setup_db_before_test):
             'rol': Jugador[1].Rol,
             'blockIzq': Jugador[1].blockIzq,
             'blockDer': Jugador[1].blockDer,
+            'cuarentena': Jugador[1].cuarentena,
             'cartas': lista_cartas
         }
 
