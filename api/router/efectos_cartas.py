@@ -100,7 +100,6 @@ def intercambiar_posiciones(jugador1, jugador2):
 def cambio_de_lugar(jugador1, jugador2):
     with db_session:
         if jugador1 and jugador2:
-            if (jugador1.cuarentena or jugador2.cuarentena) : raise HTTPException(status_code=400, detail="Jugador en cuarentena no puede cambiar de lugar con otro jugador")
             cant = jugador1.partida.cantidadVivos
             ady = son_adyacentes(jugador1, jugador2)
             #ACA SE ASUME QUE SI SENTIDO=TRUE EL SENTIDO DE LA PARTIDA ES ANTIHORARIO, OSEA (POSICION+1 MOD CANT) CORRESPONDE BLOQUEO DE DERECHA Y (POSICION-1 MOD CANT) CORRESPONDE BLOQUEO DE IZQUIERDA 
