@@ -21,7 +21,7 @@ class PartidaResponse(BaseModel):
     iniciada: bool
     turnoActual: Optional[int]
     sentido: bool
-    jugadores: List[Dict[str, Union[str,Optional[int],bool,str]]]
+    jugadores: List[Dict[str, Union[str,Optional[int],bool,str,bool,bool,bool]]]
 
 class JugadorResponse(BaseModel):
     nombre: str
@@ -30,6 +30,8 @@ class JugadorResponse(BaseModel):
     isAlive: Optional[bool]
     blockIzq: bool
     blockDer: bool
+    cuarentena: bool
+    cuarentenaCount: int
     rol: Optional[str]
     cartas: Optional[List[Dict[str,Union[str,int]]]]
 
