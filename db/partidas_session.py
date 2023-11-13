@@ -11,7 +11,11 @@ def get_jugadores_partida(idPartida: int):
                                   "nombre": j.nombre,
                                   "posicion": j.Posicion,
                                   "isAlive": j.isAlive,
-                                  "rol": j.Rol} for j in partida.jugadores], key=lambda j: j['id'])
+                                  "rol": j.Rol,
+                                  "blockIzq": j.blockIzq,
+                                  "blockDer": j.blockDer,
+                                  "cuarentena": j.cuarentena,
+                                  } for j in partida.jugadores], key=lambda j: j['id'])
     return jugadores_list
 
 @db_session

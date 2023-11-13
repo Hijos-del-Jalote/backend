@@ -2,10 +2,10 @@ from fastapi.testclient import TestClient
 from db.models import *
 from pony.orm import db_session
 from fastapi import HTTPException
-from api.ws import manager
+from api.ws import manager, manager_chat
 import asyncio
 import json
-
+from db.cartas_session import intercambiar_cartas
 #Esta funcion es para saber si jugador2 es adyacente a jugador1 y de que lado.
 #El valor de retorno es una tupla (adyacente, lado)
 #adyacente es bool indicando si es o no adyacente. Si no lo es entonces lado es None, sino:
@@ -37,10 +37,23 @@ def recalcular_posiciones(partida, pos_muerta):
             jugador.Posicion -= 1
             db.commit()
 
-def efecto_lanzallamas(id_objetivo):
+def efecto_lanzallamas(jugador, id_objetivo):
     with db_session:
         if (id_objetivo != None) & (Jugador.exists(id=id_objetivo)):
+            if jugador.cuarentena : raise HTTPException(status_code=400, detail="Jugador en cuarentena no puede eliminar otro jugador")
             objetivo = Jugador[id_objetivo]
+            #Si hay una puerta trancada en al lado del jugador a eliminar se la debe preservar
+            if objetivo.blockDer or objetivo.blockIzq:
+                if jugador.partida.cantidadVivos == 3:
+                    #Si hay 3 jugadores, al eliminar el objetivo quedaran 2, y la puerta trancada pasa a ser total entre esos 2 jugadores
+                    Jugador.get(Posicion=(objetivo.Posicion+1)%objetivo.partida.cantidadVivos, partida=objetivo.partida).blockDer = True
+                    Jugador.get(Posicion=(objetivo.Posicion+1)%objetivo.partida.cantidadVivos, partida=objetivo.partida).blockIzq = True
+                    Jugador.get(Posicion=(objetivo.Posicion-1)%objetivo.partida.cantidadVivos, partida=objetivo.partida).blockDer = True
+                    Jugador.get(Posicion=(objetivo.Posicion-1)%objetivo.partida.cantidadVivos, partida=objetivo.partida).blockIzq = True
+                else:
+                    #Si son mas de 3 jugadores la puerta trancada queda segun adyacencia comun 
+                    Jugador.get(Posicion=(objetivo.Posicion-1)%objetivo.partida.cantidadVivos, partida=objetivo.partida).blockDer = True
+                    Jugador.get(Posicion=(objetivo.Posicion+1)%objetivo.partida.cantidadVivos, partida=objetivo.partida).blockIzq = True
             recalcular_posiciones(objetivo.partida, objetivo.Posicion)
             objetivo.isAlive = False
             objetivo.Posicion = None
@@ -107,6 +120,7 @@ def cambio_de_lugar(jugador1, jugador2):
 
             if ady[0] and (not jugador2.cuarentena) and ((ady[1]==1 and (not jugador1.blockDer) and (not jugador2.blockIzq)) or (ady[1]==0 and (not jugador1.blockIzq) and (not jugador1.blockDer)) or (ady[1]==2 and (not jugador1.blockIzq) and (not jugador1.blockDer))):
                 intercambiar_posiciones(jugador1, jugador2)
+                jugador1.partida.turnoPostIntercambio = jugador2.id
 
             else:
                 raise HTTPException(status_code=400, detail="Los jugadores no son adyacentes | El jugador objetivo esta en cuarentena | Hay una puerta trancada de por medio")
@@ -118,7 +132,9 @@ def mas_vale_que_corras(jugador1, jugador2):
     with db_session:
         if jugador1 and jugador2:
             if not jugador2.cuarentena:
+                if jugador1.cuarentena : raise HTTPException(status_code=400, detail="Jugador en cuarentena no puede cambiar de lugar con otro jugador")
                 intercambiar_posiciones(jugador1, jugador2)
+                jugador1.partida.turnoPostIntercambio = jugador2.id
             else:
                 raise HTTPException(status_code=400, detail="El jugador objetivo esta en cuarentena")
         else:
@@ -139,7 +155,19 @@ def efecto_infeccion(id_objetivo, id_jugador):
         else:
             raise HTTPException(status_code=400, detail="Jugador objetivo No existe o No proporcionado")
 
-
+def efecto_cuarentena(jugador, objetivo):
+    with db_session:
+        if jugador and objetivo:
+            if not son_adyacentes(jugador, objetivo)[0]: raise HTTPException(status_code=400, detail="Jugadores no son adyacentes")  
+            objetivo.cuarentena = True
+            #Seteo en 3 porque el efecto se aplica al jugador adyacente del que jugo la carta.
+            #Entonces en el sentido de la ronda una vez le toque al jugador recien ahi se le baja en uno el contador.
+            #Lo que tiene hacerlo de esta forma es que el objetivo del lado que el turno siguiente no es suyo la puede llegar a sufrir un poco mas. 
+            objetivo.cuarentenaCount = 3
+                
+        else:
+            raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")
+            
 async def sospecha(idPartida, idObjetivo, idJugador):
     if son_adyacentes(Jugador.get(id=idObjetivo), Jugador.get(id=idJugador))[0]:
         await manager.handle_data("sospecha", idPartida, idObjetivo=idObjetivo, idJugador=idJugador)
@@ -156,11 +184,53 @@ def cuerdas_podridas(idPartida):
         for j in partida.jugadores:
             j.cuarentena = False
 
+def hacha(jugador, objetivo):
+    ady = son_adyacentes(jugador, objetivo)
+    if (not objetivo) or (not jugador): raise HTTPException(status_code=400, detail="Jugador proporcionado no existente")
+    if (jugador!=objetivo) and not ady[0]: raise HTTPException(status_code=400, detail="Los jugadores no son adyacentes")
+    
+    if (jugador.partida.cantidadVivos == 2) and not (jugador.blockDer or jugador.blockIzq):
+        if jugador == objetivo:
+            jugador.cuarentena = False
+        else:
+            objetivo.cuarentena = False
+    elif (jugador.partida.cantidadVivos == 2) and (jugador.blockDer or jugador.blockIzq):
+        jugador.blockDer = False
+        jugador.blockIzq = False
+        Jugador.get(Posicion=(jugador.Posicion+1)%jugador.partida.cantidadVivos, partida=jugador.partida).blockDer = False
+        Jugador.get(Posicion=(jugador.Posicion+1)%jugador.partida.cantidadVivos, partida=jugador.partida).blockIzq = False
+        
+    elif (jugador.partida.cantidadVivos >2) and not (jugador.blockDer or jugador.blockIzq):
+        if jugador == objetivo:
+            jugador.cuarentena = False
+        else:
+            objetivo.cuarentena = False
+    elif (jugador.partida.cantidadVivos >2) and (jugador.blockDer or jugador.blockIzq):
+        if jugador == objetivo:
+            if jugador.blockDer:
+                jugador.blockDer = False
+                Jugador.get((jugador.Posicion+1)%jugador.partida.cantidadVivos, partida=jugador.partida).blockIzq = False
+            else:
+                jugador.blockIzq = False
+                Jugador.get((jugador.Posicion-1)%jugador.partida.cantidadVivos, partida=jugador.partida).blockDer = False
+        elif ady[1] == 0:
+            jugador.blockIzq = False
+            objetivo.blockDer = False
+        else:
+            jugador.blockDer = False
+            objetivo.blockIzq = False
+    else:
+        raise HTTPException(status_code=400, detail="Mal programada la logica en algun lado")
+
+
+            
+
 async def entre_nosotros(idPartida, idObjetivo, idJugador):
     if son_adyacentes(Jugador.get(id=idObjetivo), Jugador.get(id=idJugador))[0]:
         await manager.handle_data("Que quede entre nosotros", idPartida,idJugador=idJugador ,idObjetivo=idObjetivo)
     else:
         raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")
+        
 async def analisis(idPartida, idObjetivo,idJugador,):
     if son_adyacentes(Jugador.get(id=idObjetivo), Jugador.get(id=idJugador))[0]:
         await manager.handle_data("Analisis", idPartida, idObjetivo=idObjetivo , idJugador=idJugador)
@@ -186,4 +256,40 @@ async def cita_a_ciegas(idPartida,idJugador):
         carta.jugador=None
         db.commit()
         await manager.handle_data("fin_de_turno", idPartida=idPartida)
+
+def fallaste_es_aplicable(partida: Partida, jugador1: Jugador, jugador2: Jugador):
+    if partida.sentido and (jugador1.blockDer or jugador2.blockIzq):
+        return False
+    if not partida.sentido and (jugador1.blockIzq or jugador2.blockDer):
+        return False
+    if jugador1.cuarentena or jugador2.cuarentena:
+        return False
+    
+    return True
+
+async def fallaste(partida: Partida, jugador1: Jugador, jugador2: Jugador, carta: Carta):
+    # El siguiente jugador después de ti 
+    # (siguiendo el orden de juego) debe intercambiar 
+    # las cartas en lugar de hacerlo tú.
+    #  Si este jugador recibe una carta “¡Infectado!” 
+    # durante el intercambio, no queda Infectado,
+    # ¡pero sabrá que ha recibido una carta de La Cosa 
+    # durante el intercambio de un jugador Infectado!
+    # Si hay “obstáculos” en el camino, como una
+    # “Puerta atrancada” o “Cuarentena”, no se produce 
+    # ningún intercambio, y el siguiente turno lo jugará
+    # el jugador siguiente a aquel que inició el intercambio.
+    if fallaste_es_aplicable(partida,jugador1,jugador2):
+        with db_session:
+            pos = ((jugador2.Posicion+1) % partida.cantidadVivos if partida.sentido 
+                   else (jugador2.Posicion-1)%partida.cantidadVivos)
+            jugObj: Jugador = Jugador.get(Posicion=pos, partida=partida)
+
+        msg = f'{jugador1.nombre} pasó a intercambiar con {jugObj.nombre}'
+        await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
+                                       
+        response = await manager.handle_data("intercambiar", carta.partida.id, jugador1.id,
+                                                     idCarta=carta.id, idObjetivo=jugObj.id)
+        
+        intercambiar_cartas(carta.id, response['data'])
 

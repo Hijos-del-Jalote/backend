@@ -15,7 +15,11 @@ def test_get_partida_valid(setup_db_before_test):
                                   "nombre": j.nombre,
                                   "posicion": j.Posicion,
                                   "isAlive": j.isAlive,
-                                  "rol": j.Rol} for j in Partida[1].jugadores], key=lambda j: j['id'])
+                                  "rol": j.Rol,
+                                  "blockIzq": j.blockIzq,
+                                  "blockDer": j.blockDer,
+                                  "cuarentena": j.cuarentena,
+                                  } for j in Partida[1].jugadores], key=lambda j: j['id'])
         
         expected_response = {
             'nombre': Partida[1].nombre,
