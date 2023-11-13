@@ -27,6 +27,7 @@ class Jugador(db.Entity):
     blockIzq = Required(bool, default=False)
     blockDer = Required(bool, default=False)
     cuarentena = Optional(bool, default=False)
+    cuarentenaCount = Optional(int, default=0)
     partida = Optional('Partida')
     cartas = Set('Carta')
 
