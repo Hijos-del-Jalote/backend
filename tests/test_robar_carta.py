@@ -3,6 +3,9 @@ from fastapi.testclient import TestClient
 from api.api import app
 from db.models import *
 from pony.orm import get, db_session, commit
+from unittest.mock import AsyncMock, patch
+import json
+import datetime
 
 client=TestClient(app)
 
@@ -35,8 +38,15 @@ def test_robo_exitoso(setup_db_before_test):
         
         rm_panico_cards(partida.cartas)
         commit()
+
+        with client.websocket_connect(f"ws://localhost:8000/partidas/{partida.id}/ws/chat?idJugador={jugador.id}") as wschat:
+            with patch("db.utils.obtener_tiempo_actual") as mock_time:
+                mock_time.return_value = "00:00"
+                response = client.put(f'/jugadores/{jugador.id}/robar')
+
+            logmsg = wschat.receive_json()
+            assert logmsg == {'event':"chat_msg",'data':{'isLog':True,'player': None,'msg':f'{jugador.nombre} robó una carta','time':"00:00"}}
         
-        response = client.put(f'/jugadores/{jugador.id}/robar')
         assert count(jugador.cartas) == 1
 
     assert response.status_code == status.HTTP_200_OK

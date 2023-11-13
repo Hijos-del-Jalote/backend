@@ -186,3 +186,4 @@ async def cita_a_ciegas(idPartida,idJugador):
         carta.jugador=None
         db.commit()
         await manager.handle_data("fin_de_turno", idPartida=idPartida)
+
