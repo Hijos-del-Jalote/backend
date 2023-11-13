@@ -40,6 +40,18 @@ def efecto_lanzallamas(jugador, id_objetivo):
         if (id_objetivo != None) & (Jugador.exists(id=id_objetivo)):
             if jugador.cuarentena : raise HTTPException(status_code=400, detail="Jugador en cuarentena no puede eliminar otro jugador")
             objetivo = Jugador[id_objetivo]
+            #Si hay una puerta trancada en al lado del jugador a eliminar se la debe preservar
+            if objetivo.blockDer or objetivo.blockIzq:
+                if jugador.partida.cantidadVivos == 3:
+                    #Si hay 3 jugadores, al eliminar el objetivo quedaran 2, y la puerta trancada pasa a ser total entre esos 2 jugadores
+                    Jugador.get(Posicion=(objetivo.Posicion+1)%objetivo.partida.cantidadVivos, partida=objetivo.partida).blockDer = True
+                    Jugador.get(Posicion=(objetivo.Posicion+1)%objetivo.partida.cantidadVivos, partida=objetivo.partida).blockIzq = True
+                    Jugador.get(Posicion=(objetivo.Posicion-1)%objetivo.partida.cantidadVivos, partida=objetivo.partida).blockDer = True
+                    Jugador.get(Posicion=(objetivo.Posicion-1)%objetivo.partida.cantidadVivos, partida=objetivo.partida).blockIzq = True
+                else:
+                    #Si son mas de 3 jugadores la puerta trancada queda segun adyacencia comun 
+                    Jugador.get(Posicion=(objetivo.Posicion-1)%objetivo.partida.cantidadVivos, partida=objetivo.partida).blockDer = True
+                    Jugador.get(Posicion=(objetivo.Posicion+1)%objetivo.partida.cantidadVivos, partida=objetivo.partida).blockIzq = True
             recalcular_posiciones(objetivo.partida, objetivo.Posicion)
             objetivo.isAlive = False
             objetivo.Posicion = None
