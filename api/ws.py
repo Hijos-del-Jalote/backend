@@ -8,7 +8,7 @@ from db.cartas_session import carta_data, get_mano_jugador, puede_intercambiar_i
 from db.utils import msg_data
 import asyncio
 import json
-from fastapi import APIRouter, HTTPException, status
+
 
 class ConnectionManager:
     def __init__(self):
