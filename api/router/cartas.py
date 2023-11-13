@@ -186,7 +186,7 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                         case _:
                             await manager.broadcast({'event': "intercambio rechazado"}, carta.partida.id)
                     
-                    descartar_carta(jo_carta.id)
+                    descartar_carta_norestricciones(jo_carta,jugObj)
                     robar_carta(idObjetivo)
                     
         else:
