@@ -2,8 +2,9 @@ from fastapi.testclient import TestClient
 from db.models import *
 from pony.orm import db_session
 from fastapi import HTTPException
-from api.ws import manager
+from api.ws import manager, manager_chat
 import asyncio
+from db.cartas_session import intercambiar_cartas
 #Esta funcion es para saber si jugador2 es adyacente a jugador1 y de que lado.
 #El valor de retorno es una tupla (adyacente, lado)
 #adyacente es bool indicando si es o no adyacente. Si no lo es entonces lado es None, sino:
@@ -164,3 +165,39 @@ async def analisis(idPartida, idObjetivo,idJugador,):
         await manager.handle_data("Analisis", idPartida, idObjetivo=idObjetivo , idJugador=idJugador)
     else:
         raise HTTPException(status_code=400, detail="El jugador objetivo deber ser adyacente")
+
+def fallaste_es_aplicable(partida: Partida, jugador1: Jugador, jugador2: Jugador):
+    if partida.sentido and (jugador1.blockDer or jugador2.blockIzq):
+        return False
+    if not partida.sentido and (jugador1.blockIzq or jugador2.blockDer):
+        return False
+    if jugador1.cuarentena or jugador2.cuarentena:
+        return False
+    
+    return True
+
+async def fallaste(partida: Partida, jugador1: Jugador, jugador2: Jugador, carta: Carta):
+    # El siguiente jugador después de ti 
+    # (siguiendo el orden de juego) debe intercambiar 
+    # las cartas en lugar de hacerlo tú.
+    #  Si este jugador recibe una carta “¡Infectado!” 
+    # durante el intercambio, no queda Infectado,
+    # ¡pero sabrá que ha recibido una carta de La Cosa 
+    # durante el intercambio de un jugador Infectado!
+    # Si hay “obstáculos” en el camino, como una
+    # “Puerta atrancada” o “Cuarentena”, no se produce 
+    # ningún intercambio, y el siguiente turno lo jugará
+    # el jugador siguiente a aquel que inició el intercambio.
+    if fallaste_es_aplicable(partida,jugador1,jugador2):
+        with db_session:
+            pos = ((jugador2.Posicion+1) % partida.cantidadVivos if partida.sentido 
+                   else (jugador2.Posicion-1)%partida.cantidadVivos)
+            jugObj: Jugador = Jugador.get(Posicion=pos, partida=partida)
+
+        msg = f'{jugador1.nombre} pasó a intercambiar con {jugObj.nombre}'
+        await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
+                                       
+        response = await manager.handle_data("intercambiar", carta.partida.id, jugador1.id,
+                                                     idCarta=carta.id, idObjetivo=jugObj.id)
+        
+        intercambiar_cartas(carta.id, response['data'])
