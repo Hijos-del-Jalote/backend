@@ -83,6 +83,9 @@ async def jugar_carta(id_carta:int, id_objetivo:int | None = None, test=False):
                         efectos_cartas.mas_vale_que_corras(jugador, Jugador[id_objetivo])
                     case "Puerta atrancada":
                         efectos_cartas.puerta_trancada(jugador, Jugador[id_objetivo])
+                    case "Hacha":
+                        efectos_cartas.hacha(jugador, Jugador[id_objetivo])
+
                     case "Cuarentena":
                         efectos_cartas.efecto_cuarentena(jugador, Jugador[id_objetivo])
                     case "Analisis":
