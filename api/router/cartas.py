@@ -177,6 +177,9 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                 else:
                     msg = f'{jugObj.nombre} jugó {jo_carta.template_carta.nombre} y rechazó el intercambio'
                     await manager_chat.handle_data("chat_msg", partida.id, msg=msg, isLog=True)
+
+                    descartar_carta_norestricciones(jo_carta,jugObj)
+                    robar_carta(idObjetivo)
                     
                     match jo_carta.template_carta.nombre:
                         case "Aterrador":
@@ -186,8 +189,6 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                         case _:
                             await manager.broadcast({'event': "intercambio rechazado"}, carta.partida.id)
                     
-                    descartar_carta_norestricciones(jo_carta,jugObj)
-                    robar_carta(idObjetivo)
                     
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Carta o jugador no encontrados")
