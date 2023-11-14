@@ -151,7 +151,25 @@ async def intercambiar_cartas_put(idCarta: int, idObjetivo:int):
                     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="Sólo puede intercambiar con el siguiente jugador")
                 
-                if (partida.ultimaJugada == "Seduccion") & jugObj.cuarentena:
+                if jugObj.cuarentena or jugador.cuarentena or (jugador.blockIzq and not partida.sentido) or (jugador.blockDer and partida.sentido):
+                    partida.ultimaJugada = ""
+        
+                    if not partida.turnoPostIntercambio:
+                        pos_actual = Jugador[partida.turnoActual].Posicion
+                        if partida.sentido:
+                            siguiente = Jugador.get(Posicion=(pos_actual+1)%partida.cantidadVivos, partida=partida)
+                        else:
+                            siguiente = Jugador.get(Posicion=(pos_actual-1)%partida.cantidadVivos, partida=partida)
+                        partida.turnoActual = siguiente.id
+                        checkeo_cuarentena(siguiente)
+                    else:
+                        partida.turnoActual = partida.turnoPostIntercambio
+                        partida.turnoPostIntercambio = None
+
+                    checkeo_cuarentena(jugador)
+                                
+                    commit()         
+                    await manager.handle_data("fin_de_turno",carta.partida.id)
                     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="No se puede intercambiar con un jugador en cuarentena")
 
@@ -232,9 +250,9 @@ async def descartar_carta_put(idCarta: int):
 @db_session   
 def checkeo_cuarentena(jugador):
     if jugador.cuarentena:
-        if jugador.cuarentenaCounter > 0:
-            jugador.cuarentenaCounter -= 1
-            if jugador.cuarentenaCounter == 0:
+        if jugador.cuarentenaCount > 0:
+            jugador.cuarentenaCount -= 1
+            if jugador.cuarentenaCount == 0:
                 jugador.cuarentena = False
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,

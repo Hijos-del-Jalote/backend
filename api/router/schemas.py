@@ -37,7 +37,7 @@ class JugadorResponse(BaseModel):
 
 class FinPartidaResponse(BaseModel):
     isHumanoTeamWinner: Optional[bool]
-    winners: Optional[List[int]]
+    winners: Optional[List[str]]
 
 class JugarCartaData(BaseModel):
     idJugador: int

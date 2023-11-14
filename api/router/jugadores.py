@@ -121,11 +121,11 @@ async def la_cosa_finaliza_la_partida(idJugador: int):
         for jugador in partida.jugadores:
             if jugador.Rol == "Humano" and jugador.isAlive == True:
                 ganalacosa=False
-                humanos.append(jugador.id)
+                humanos.append(jugador.nombre)
             elif jugador.Rol == "Infectado" and partida.ultimo_infectado == jugador.id:
-                humanos.append(jugador.id)
+                humanos.append(jugador.nombre)
             else:
-                infectados.append(jugador.id)
+                infectados.append(jugador.nombre)
         if ganalacosa == True:
             partida.finalizada = True
             for jugador in partida.jugadores:
