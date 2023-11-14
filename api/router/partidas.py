@@ -219,10 +219,10 @@ def get_winners(idPartida: int, idJugador: int) -> tuple:
         jugadores = partida.jugadores
         lacosa = get(j for j in jugadores if j.Rol == Rol.lacosa)
         muertos = select(j for j in jugadores if not j.isAlive)
-        humanos = select(j.id for j in jugadores if j.Rol == Rol.humano)
+        humanos = select(j.nombre for j in jugadores if j.Rol == Rol.humano)
     
     if len(jugadores)-1==len(muertos) and lacosa.isAlive: # todos muertos menos la cosa
-        return ([lacosa.id], "cosos")           
+        return ([lacosa.nombre], "cosos")           
     if not lacosa.isAlive: # muere la cosa
         return (sorted(humanos), "humanos")
     else:
