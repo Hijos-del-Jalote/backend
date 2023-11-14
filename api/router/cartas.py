@@ -241,7 +241,10 @@ async def descartar_carta_put(idCarta: int):
         carta = Carta.get(id=idCarta)
         jugador = carta.jugador
         partida = jugador.partida
-
+        ultimaRobada = Carta.get(id=partida.ultimaRobada)
+        if ultimaRobada and ultimaRobada.template_carta.tipo == Tipo_Carta.panico:
+            raise HTTPException(status_code=400, detail="Debes jugar la carta de pánico levantada")
+    
     descartar_carta(idCarta)
 
     msg = f'{jugador.nombre} descartó una carta'
