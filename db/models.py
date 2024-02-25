@@ -1,21 +1,21 @@
 from pony.orm import *
 from enum import Enum
-from settings import DATABASE_FILENAME
+from db.settings import DATABASE_FILENAME
 
 
 db = Database()
 
 class Rol(str, Enum):
-    lacosa = "lacosa"
-    infectado = "infectado"
-    humano = "humano"
+    lacosa = "La cosa"
+    infectado = "Infectado"
+    humano = "Humano"
 
 class Tipo_Carta(str, Enum):
-    panico = "panico"
-    accion = "accion"
-    defensa = "defensa"
-    obstaculo = "obstaculo"
-    contagio = "contagio"
+    panico = "Panico"
+    accion = "Accion"
+    defensa = "Defensa"
+    obstaculo = "Obstaculo"
+    contagio = "Contagio"
 
 class Jugador(db.Entity):
     id = PrimaryKey(int, auto=True)
@@ -27,7 +27,8 @@ class Jugador(db.Entity):
     blockIzq = Required(bool, default=False)
     blockDer = Required(bool, default=False)
     cuarentena = Optional(bool, default=False)
-    partida = Required('Partida')
+    cuarentenaCount = Optional(int, default=0)
+    partida = Optional('Partida')
     cartas = Set('Carta')
 
 
@@ -35,7 +36,7 @@ class Carta(db.Entity):
     id = PrimaryKey(int, auto=True)
     descartada = Required(bool, default=False)
     template_carta = Required('TemplateCarta')
-    jugador = Required(Jugador)
+    jugador = Optional(Jugador)
     partida = Required('Partida')
 
 
@@ -49,16 +50,22 @@ class TemplateCarta(db.Entity):
 class Partida(db.Entity):
     id = PrimaryKey(int, auto=True)
     nombre = Required(str)
-    password = Optional(str, default=None)
+    password = Optional(str, default='')
     maxJug = Required(int)
     minJug = Required(int)
     turnoActual = Optional(int)
     sentido = Required(bool, default=True)
     iniciada = Required(bool, default=False)
-    jugadors = Set(Jugador)
+    finalizada = Optional(bool, default=False)
+    jugadores = Set(Jugador)
+    cantidadVivos = Optional(int)
     cartas = Set(Carta)
-
-
+    ultimo_infectado = Optional(int)
+    ultimaJugada = Optional(str, default = "")
+    ultimaRobada = Optional(int)
+    chat = Optional(StrArray)
+    turnoPostIntercambio = Optional(int)
+    
 # Conecta a la base de datos SQLite en el archivo 'database.sqlite'
 db.bind(provider='sqlite', filename=DATABASE_FILENAME, create_db=True)
 
